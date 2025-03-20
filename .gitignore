@@ -1,0 +1,4 @@
+.ansible/
+.vscode/
+.vagrant/
+vault-password.txt

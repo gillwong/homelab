@@ -1,0 +1,4 @@
+---
+gitlab_runner_name: gillwong-{{ inventory_hostname }}
+gitlab_runner_id: "{{ vault_gitlab_runner_id }}"
+gitlab_runner_token: "{{ vault_gitlab_runner_token }}"

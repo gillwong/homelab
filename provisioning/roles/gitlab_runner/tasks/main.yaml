@@ -1,0 +1,8 @@
+---
+- name: Install Docker
+  become: true
+  ansible.builtin.import_tasks: docker.yaml
+
+- name: Install & configure GitLab Runner
+  become: true
+  ansible.builtin.import_tasks: gitlab_runner.yaml

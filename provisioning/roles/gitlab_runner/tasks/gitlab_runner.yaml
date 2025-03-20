@@ -1,0 +1,22 @@
+---
+- name: Add GitLab Runner repository
+  ansible.builtin.get_url:
+    url: https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh
+    dest: /tmp/script.rpm.sh
+    mode: "755"
+
+- name: Execute the GitLab repository script
+  ansible.builtin.command: /tmp/script.rpm.sh
+  changed_when: true
+
+- name: Install GitLab Runner
+  ansible.builtin.dnf:
+    name: gitlab-runner
+    state: present
+
+- name: Configure GitLab Runner
+  no_log: true
+  ansible.builtin.template:
+    src: config.j2
+    dest: /etc/gitlab-runner/config.toml
+    mode: "600"

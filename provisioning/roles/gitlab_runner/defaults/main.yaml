@@ -1,0 +1,2 @@
+---
+gitlab_runner_name: "{{ inventory_hostname }}"

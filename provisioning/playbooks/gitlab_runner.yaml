@@ -1,0 +1,23 @@
+---
+- name: Provision GitLab Runner
+  hosts: gitlab_runner
+  tasks:
+    - name: debug
+      when: true
+      ansible.builtin.debug:
+        var: hostvars[inventory_hostname]
+        verbosity: 1
+
+    - name: Upgrade all packages
+      become: true
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+
+    - name: Reboot
+      become: true
+      ansible.builtin.reboot:
+
+    - name: Configure as GitLab Runner
+      ansible.builtin.import_role:
+        name: gitlab_runner

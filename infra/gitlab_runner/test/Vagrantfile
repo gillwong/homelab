@@ -1,0 +1,28 @@
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.require_version ">= 2.4.3"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/almalinux-9"
+  config.vm.box_version = "202502.21.0"
+
+  config.vm.define "gitlab-runner"
+  config.vm.hostname = "gitlab-runner"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.cpus = 2
+    libvirt.cpuset = "10-11"
+    libvirt.memory = 4096
+  end
+
+  config.vm.provision :ansible do |ansible|
+    base_dir = "../../../provisioning"
+    ansible.config_file = "#{base_dir}/ansible.cfg"
+    ansible.playbook = "#{base_dir}/playbooks/gitlab_runner.yaml"
+    ansible.raw_arguments = ["--inventory=#{base_dir}/hosts-placeholder.yaml"]
+    ansible.groups = {
+      "gitlab_runner" => ["gitlab-runner"]
+    }
+  end
+end
