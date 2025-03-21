@@ -1,0 +1,31 @@
+---
+- name: Download & install kubelet binary
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_base_url }}/kubelet"
+    timeout: 30
+    dest: "/usr/bin/kubelet"
+    mode: "755"
+
+- name: Download kubelet service
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_kubelet_service_url }}"
+    dest: "/usr/lib/systemd/system/kubelet.service"
+    mode: "644"
+
+- name: Create kubelet configuration directory
+  ansible.builtin.file:
+    path: /usr/lib/systemd/system/kubelet.service.d
+    state: directory
+    mode: "755"
+
+- name: Create kubelet configuration file
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_kubelet_config_url }}"
+    dest: /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+    mode: "644"
+
+- name: Start kubelet
+  ansible.builtin.service:
+    name: kubelet
+    enabled: true
+    state: started

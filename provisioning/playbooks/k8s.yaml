@@ -1,0 +1,64 @@
+---
+- name: Provision Kubernetes cluster
+  hosts: k8s
+  become: true
+  tasks:
+    - name: Upgrade all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+
+    - name: Reboot
+      ansible.builtin.reboot:
+
+    - name: Configure common Kubernetes nodes requirements
+      ansible.builtin.import_role:
+        name: k8s_common
+
+- name: Setup Kubernetes control plane nodes
+  hosts: k8s_control_plane
+  become: true
+  tasks:
+    - name: Configure Kubernetes control plane
+      ansible.builtin.import_role:
+        name: k8s_control_plane
+
+- name: Initialize Kubernetes control plane
+  hosts: k8s_control_plane_primary
+  become: true
+  tasks:
+    - name: Initialize Kubernetes control plane
+      ansible.builtin.import_role:
+        name: k8s_control_plane_primary
+
+    - name: Save control plane certificate key
+      no_log: true
+      changed_when: false
+      ansible.builtin.shell: set -o pipefail && kubeadm init phase upload-certs --upload-certs | tail -1
+      register: k8s_control_plane_certificate_key
+
+    - name: Save join command
+      changed_when: false
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: k8s_kubeadm_join_command
+
+- name: Join Kubernetes control plane nodes
+  hosts: k8s_control_plane_secondary
+  become: true
+  tasks:
+    - name: Join Kubernetes cluster as a control plane node
+      ansible.builtin.import_role:
+        name: k8s_control_plane_secondary
+      vars:
+        k8s_control_plane_secondary_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
+        k8s_control_plane_secondary_certificate_key: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_control_plane_certificate_key']['stdout'] }}"
+
+- name: Join Kubernetes worker nodes
+  hosts: k8s_worker
+  become: true
+  tasks:
+    - name: Join Kubernetes cluster as a worker node
+      ansible.builtin.import_role:
+        name: k8s_worker
+      vars:
+        k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"

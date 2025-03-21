@@ -1,0 +1,22 @@
+---
+- name: Download crictl binary archive
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_crictl_url }}"
+    timeout: 30
+    dest: "{{ temp_dir.path }}/{{ k8s_common_crictl_archive }}"
+    mode: "755"
+
+- name: Extract CNI plugins archive
+  ansible.builtin.unarchive:
+    src: "{{ temp_dir.path }}/{{ k8s_common_cni_plugins_archive }}"
+    dest: /usr/local/bin/
+    remote_src: true
+    list_files: true
+    mode: "755"
+
+# Reference: https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md
+- name: Configure crictl
+  ansible.builtin.template:
+    src: crictl_config.yaml.j2
+    dest: /etc/crictl.yaml
+    mode: "644"

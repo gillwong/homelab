@@ -1,0 +1,13 @@
+---
+- name: Create Kubernetes manifests directory
+  ansible.builtin.file:
+    path: /etc/kubernetes/manifests
+    state: directory
+    mode: "755"
+
+# Reference: https://kube-vip.io/docs/installation/static/
+- name: Setup kube-vip StaticPod manifest
+  ansible.builtin.template:
+    src: kube_vip_manifest.yaml.j2
+    dest: /etc/kubernetes/manifests/kube-vip.yaml
+    mode: "644"

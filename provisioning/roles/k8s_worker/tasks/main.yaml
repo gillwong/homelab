@@ -1,0 +1,5 @@
+---
+- name: Join Kubernetes cluster as a control plane node
+  when: k8s_worker_join_command
+  changed_when: true
+  ansible.builtin.command: "{{ k8s_worker_join_command }}"

@@ -1,0 +1,61 @@
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+Vagrant.require_version ">= 2.4.3"
+
+Vagrant.configure("2") do |config|
+  control_plane_nodes = 3
+  worker_nodes = 3
+
+  config.ssh.compression = false
+  config.ssh.forward_agent = true
+  config.ssh.forward_x11 = true
+
+  (1..control_plane_nodes).each do |i|
+    config.vm.define "k8s-cp-#{i}" do |node|
+      node.vm.box = "bento/almalinux-9"
+      node.vm.box_version = "202502.21.0" 
+      node.vm.hostname = "k8s-cp-#{i}"
+      node.vm.synced_folder ".", "/vagrant", disabled: true
+      node.vm.network "private_network", ip: "192.168.121.#{10+i}"
+
+      node.vm.provider :libvirt do |libvirt|
+        libvirt.cpus = 3
+        libvirt.memory = 4096
+        libvirt.storage :file, :size => "32G"
+      end
+    end
+  end
+
+  (control_plane_nodes+1..control_plane_nodes+worker_nodes).each do |i|
+    config.vm.define "k8s-#{i}" do |node|
+      node.vm.box = "bento/almalinux-9"
+      node.vm.box_version = "202502.21.0" 
+      node.vm.hostname = "k8s-#{i}"
+      node.vm.synced_folder ".", "/vagrant", disabled: true
+      node.vm.network "private_network", ip: "192.168.121.#{10+i}"
+
+      node.vm.provider :libvirt do |libvirt|
+        libvirt.cpus = 2
+        libvirt.memory = 4096
+        libvirt.storage :file, :size => "32G"
+      end
+
+      if i == 6
+        node.vm.provision :ansible do |ansible|
+          base_dir = "../../../provisioning"
+          ansible.limit = "all"
+          ansible.config_file = "#{base_dir}/ansible.cfg"
+          ansible.playbook = "#{base_dir}/playbooks/k8s.yaml"
+          ansible.raw_arguments = ["--inventory=#{base_dir}/hosts-placeholder.yaml"]
+          ansible.groups = {
+            "k8s" => (1..3).map { |j| "k8s-cp-#{j}" } + (4..6).map { |j| "k8s-#{j}" },
+            "k8s_control_plane" => (1..3).map { |j| "k8s-cp-#{j}" },
+            "k8s_control_plane_primary" => ["k8s-cp-1"],
+            "k8s_control_plane_secondary" => (2..3).map { |j| "k8s-cp-#{j}" },
+            "k8s_worker" => (4..6).map { |j| "k8s-#{j}" }
+          }
+        end
+      end
+    end
+  end
+end

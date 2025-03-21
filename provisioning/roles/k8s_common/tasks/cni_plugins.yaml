@@ -1,0 +1,21 @@
+---
+- name: Download CNI plugins archive
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_cni_plugins_url }}"
+    timeout: 30
+    dest: "{{ temp_dir.path }}/{{ k8s_common_cni_plugins_archive }}"
+    mode: "755"
+
+- name: Create CNI plugins directory
+  ansible.builtin.file:
+    path: /opt/cni/bin
+    state: directory
+    mode: "755"
+
+- name: Extract CNI plugins archive
+  ansible.builtin.unarchive:
+    src: "{{ temp_dir.path }}/{{ k8s_common_cni_plugins_archive }}"
+    dest: /opt/cni/bin/
+    remote_src: true
+    list_files: true
+    mode: "755"

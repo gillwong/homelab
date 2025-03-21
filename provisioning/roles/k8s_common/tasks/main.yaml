@@ -1,0 +1,36 @@
+---
+- name: Create temporary directory for downloads
+  ansible.builtin.tempfile:
+    state: directory
+  register: temp_dir
+
+- name: Configure system and kernel settings
+  ansible.builtin.import_tasks: system.yaml
+
+- name: Enable services used by Longhorn
+  ansible.builtin.import_tasks: longhorn.yaml
+
+- name: Install containerd
+  ansible.builtin.import_tasks: containerd_install.yaml
+
+- name: Install CNI plugins
+  ansible.builtin.import_tasks: cni_plugins.yaml
+
+- name: Configure containerd
+  ansible.builtin.import_tasks: containerd_config.yaml
+
+- name: Install & configure crictl
+  ansible.builtin.import_tasks: crictl.yaml
+
+- name: Install kubelet
+  ansible.builtin.import_tasks: kubelet.yaml
+
+- name: Install kubeadm & kubectl
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_base_url }}/{{ item }}"
+    timeout: 30
+    dest: "/usr/bin/{{ item }}"
+    mode: "755"
+  loop:
+    - kubeadm
+    - kubectl
