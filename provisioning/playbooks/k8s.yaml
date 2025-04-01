@@ -62,3 +62,11 @@
         name: k8s_worker
       vars:
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
+
+- name: Configure Flux
+  hosts: k8s_control_plane
+  become: true
+  tasks:
+    - name: Configure Flux role
+      ansible.builtin.import_role:
+        name: flux

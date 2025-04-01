@@ -1,2 +1,3 @@
 ---
 k8s_cluster_endpoint: 192.168.121.200
+flux_github_token: "{{ vault_flux_github_token }}"

@@ -1,0 +1,22 @@
+---
+- name: Obtain installed Flux CLI version
+  ansible.builtin.command: /usr/local/bin/flux --version
+  register: flux_version_output
+  changed_when: false
+  ignore_errors: true
+
+- name: Install Flux CLI
+  when: not ansible_check_mode and flux_version_output.rc != 0
+  become: true
+  block:
+    - name: Download Flux CLI install script
+      ansible.builtin.get_url:
+        url: https://fluxcd.io/install.sh
+        timeout: 30
+        dest: /usr/local/bin/flux-cli-install.sh
+        mode: "755"
+
+    - name: Run Flux CLI install script
+      ansible.builtin.command:
+        cmd: /usr/local/bin/flux-cli-install.sh
+      changed_when: true

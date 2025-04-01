@@ -1,0 +1,29 @@
+---
+- name: Install Flux Flux CLI
+  ansible.builtin.import_tasks: cli.yaml
+
+- name: Check cluster compatibility
+  ansible.builtin.command:
+    cmd: /usr/local/bin/flux --kubeconfig /etc/kubernetes/admin.conf check --pre
+  register: flux_precheck_output
+  failed_when: flux_precheck_output.rc != 0
+  changed_when: false
+
+- name: Check Flux installation
+  ansible.builtin.command:
+    cmd: /usr/local/bin/flux --kubeconfig /etc/kubernetes/admin.conf check
+  register: flux_check_output
+  changed_when: false
+  ignore_errors: true
+
+- name: Bootstrap Flux
+  when: flux_check_output.rc != 0
+  run_once: true
+  block:
+    - name: Import GitLab bootstrap tasks
+      ansible.builtin.import_tasks: gitlab.yaml
+      when: flux_git_provider == 'gitlab'
+
+    - name: Import GitHub bootstrap tasks
+      ansible.builtin.import_tasks: github.yaml
+      when: flux_git_provider == 'github'
