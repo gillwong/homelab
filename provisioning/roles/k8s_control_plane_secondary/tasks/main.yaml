@@ -1,5 +1,5 @@
 ---
 - name: Join Kubernetes cluster as a control plane node
-  when: k8s_control_plane_secondary_join_command and k8s_control_plane_secondary_certificate_key 
+  when: k8s_control_plane_secondary_join_command and k8s_control_plane_secondary_certificate_key
   changed_when: true
   ansible.builtin.command: "{{ k8s_control_plane_secondary_join_command }} --control-plane --certificate-key={{ k8s_control_plane_secondary_certificate_key }}"

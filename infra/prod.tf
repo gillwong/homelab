@@ -25,11 +25,11 @@ variable "k8s_config" {
   description = "Kubernetes cluster nodes configuration"
   type = object({
     control_plane_nodes = number
-    worker_nodes = number
+    worker_nodes        = number
   })
   default = {
     control_plane_nodes = 3
-    worker_nodes = 3
+    worker_nodes        = 3
   }
   nullable = false
 }
@@ -56,7 +56,7 @@ resource "proxmox_vm_qemu" "gitlab-runner" {
   # Cloud-Init configuration
   cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
   ciupgrade  = true
-  nameserver = "192.168.0.1" # router IP
+  nameserver = "192.168.0.1"                       # router IP
   ipconfig0  = "ip=192.168.1.10/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux"
@@ -74,10 +74,10 @@ resource "proxmox_vm_qemu" "gitlab-runner" {
         disk {
           storage = "local-lvm"
           # The size of the disk should be at least as big as the disk in the template. If it's smaller, the disk will be recreated
-          size = "32G"
-          discard = true
+          size       = "32G"
+          discard    = true
           emulatessd = true
-          iothread = true
+          iothread   = true
         }
       }
     }
@@ -100,7 +100,7 @@ resource "proxmox_vm_qemu" "gitlab-runner" {
 
 resource "proxmox_vm_qemu" "k8s-cp" {
   count = var.k8s_config.control_plane_nodes
-  
+
   vmid             = 121 + count.index
   name             = "tf-k8s-cp-${count.index + 1}"
   target_node      = "pve"
@@ -116,7 +116,7 @@ resource "proxmox_vm_qemu" "k8s-cp" {
   # Cloud-Init configuration
   cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
   ciupgrade  = true
-  nameserver = "192.168.0.1" # router IP
+  nameserver = "192.168.0.1"                                        # router IP
   ipconfig0  = "ip=192.168.1.${count.index + 21}/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux"
@@ -134,10 +134,10 @@ resource "proxmox_vm_qemu" "k8s-cp" {
         disk {
           storage = "local-lvm"
           # The size of the disk should be at least as big as the disk in the template. If it's smaller, the disk will be recreated
-          size = "32G"
-          discard = true
+          size       = "32G"
+          discard    = true
           emulatessd = true
-          iothread = true
+          iothread   = true
         }
       }
     }
@@ -160,7 +160,7 @@ resource "proxmox_vm_qemu" "k8s-cp" {
 
 resource "proxmox_vm_qemu" "k8s" {
   count = var.k8s_config.worker_nodes
-  
+
   vmid             = 121 + var.k8s_config.control_plane_nodes + count.index
   name             = "tf-k8s-${count.index + 1}"
   target_node      = "pve"
@@ -176,7 +176,7 @@ resource "proxmox_vm_qemu" "k8s" {
   # Cloud-Init configuration
   cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
   ciupgrade  = true
-  nameserver = "192.168.0.1" # router IP
+  nameserver = "192.168.0.1"                                                                             # router IP
   ipconfig0  = "ip=192.168.1.${count.index + 21 + var.k8s_config.control_plane_nodes}/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux"
@@ -194,10 +194,10 @@ resource "proxmox_vm_qemu" "k8s" {
         disk {
           storage = "local-lvm"
           # The size of the disk should be at least as big as the disk in the template. If it's smaller, the disk will be recreated
-          size = "64G"
-          discard = true
+          size       = "64G"
+          discard    = true
           emulatessd = true
-          iothread = true
+          iothread   = true
         }
       }
     }
