@@ -56,7 +56,7 @@ ansible-vault encrypt vault.yaml
 
 ### Provisioning
 
-1. Provision infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
+Provision infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
 
 ```bash
 cd infra
@@ -79,7 +79,7 @@ vagrant up
 
 ### Destroying
 
-1. Destroy infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
+Destroy infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
 
 ```bash
 cd infra
