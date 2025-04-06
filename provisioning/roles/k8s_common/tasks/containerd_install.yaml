@@ -1,4 +1,9 @@
 ---
+- name: Install crun
+  ansible.builtin.package:
+    name: crun
+    state: present
+
 - name: Create a symlink from runc to crun
   ansible.builtin.file:
     src: /usr/bin/crun

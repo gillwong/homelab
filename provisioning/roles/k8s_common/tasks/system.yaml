@@ -1,5 +1,17 @@
 ---
+- name: Install iptables
+  ansible.builtin.package:
+    name: iptables
+    state: present
+
+- name: Check if firewalld exists
+  changed_when: false
+  ansible.builtin.command: firewall-cmd --version
+  register: firewalld_version_output
+  ignore_errors: true
+
 - name: Disable firewalld
+  when: firewalld_version_output.rc == 0
   ansible.builtin.service:
     name: firewalld
     state: stopped

@@ -3,7 +3,21 @@
   hosts: k8s
   become: true
   tasks:
+    - name: Check if using cloud-init
+      ansible.builtin.command: cloud-init --version
+      register: cloudinit_version_output
+      changed_when: false
+      ignore_errors: true
+
+    - name: Wait for cloud-init to finish
+      when: cloudinit_version_output.rc == 0
+      become: true
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: true
+
     - name: Upgrade all packages
+      when: not ansible_check_mode and cloudinit_version_output.rc != 0
+      become: true
       ansible.builtin.dnf:
         name: "*"
         state: latest
