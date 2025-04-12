@@ -46,7 +46,7 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
   nameserver = "192.168.0.1"                       # router IP
   ipconfig0  = "ip=192.168.1.10/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
-  ciuser     = "almalinux"
+  ciuser     = "almalinux" # Default user, reference: https://wiki.almalinux.org/cloud/Generic-cloud-on-local.html#cloud-init
   sshkeys    = var.ci_sshkey
 
   # Most cloud-init images require a serial device for their display

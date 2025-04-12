@@ -12,6 +12,8 @@
       when: cloudinit_version_output.rc == 0
       become: true
       ansible.builtin.command: cloud-init status --wait
+      register: cloudinit_status_wait_output
+      failed_when: cloudinit_status_wait_output.rc == 1
       changed_when: true
 
     - name: Upgrade all packages
