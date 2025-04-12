@@ -6,9 +6,9 @@
     dest: "{{ temp_dir.path }}/{{ k8s_common_crictl_archive }}"
     mode: "755"
 
-- name: Extract CNI plugins archive
+- name: Extract crictl binary archive
   ansible.builtin.unarchive:
-    src: "{{ temp_dir.path }}/{{ k8s_common_cni_plugins_archive }}"
+    src: "{{ temp_dir.path }}/{{ k8s_common_crictl_archive }}"
     dest: /usr/local/bin/
     remote_src: true
     list_files: true

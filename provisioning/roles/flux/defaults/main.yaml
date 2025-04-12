@@ -2,7 +2,7 @@
 flux_git_provider: github
 
 flux_github_username: gillwong
-flux_github_repository: gitops
+flux_github_repository: flux-gitops
 flux_github_branch: main
 flux_github_path: clusters/homelab
 

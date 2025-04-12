@@ -11,3 +11,5 @@
     src: kube_vip_manifest.yaml.j2
     dest: /etc/kubernetes/manifests/kube-vip.yaml
     mode: "644"
+  tags:
+    - kube_vip

@@ -9,18 +9,28 @@
 
 - name: Enable services used by Longhorn
   ansible.builtin.import_tasks: longhorn.yaml
+  tags:
+    - longhorn
 
 - name: Install containerd
   ansible.builtin.import_tasks: containerd_install.yaml
+  tags:
+    - container_runtime
 
 - name: Install CNI plugins
   ansible.builtin.import_tasks: cni_plugins.yaml
+  tags:
+    - cni_plugins
 
 - name: Configure containerd
   ansible.builtin.import_tasks: containerd_config.yaml
+  tags:
+    - container_runtime
 
 - name: Install & configure crictl
   ansible.builtin.import_tasks: crictl.yaml
+  tags:
+    - container_tools
 
 - name: Install kubelet
   ansible.builtin.import_tasks: kubelet.yaml

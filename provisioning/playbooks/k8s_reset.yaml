@@ -1,0 +1,31 @@
+---
+- name: Reset Kubernetes cluster
+  hosts: k8s
+  become: true
+  tasks:
+    - name: Reset using kubeadm
+      ansible.builtin.command: kubeadm reset --force
+      changed_when: true
+
+    - name: Remove CNI configuration
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        state: absent
+ 
+    - name: Remove iptables configuration
+      block:
+        - name: Flush tables
+          ansible.builtin.iptables:
+            flush: true
+            table: "{{ item }}"
+          loop:
+            - filter
+            - nat
+            - mangle
+
+        - name: Delete all non-empty chains
+          ansible.builtin.command: iptables --delete-chain
+          changed_when: true
+
+    - name: Reboot
+      ansible.builtin.reboot:

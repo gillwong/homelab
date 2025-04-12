@@ -56,6 +56,8 @@ ansible-vault encrypt vault.yaml
 
 ### Provisioning
 
+#### Using OpenTofu/Terraform
+
 Provision infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
 
 ```bash
@@ -68,13 +70,26 @@ cd ../k8s
 tofu init
 tofu plan
 tofu apply plan0
+```
 
+Bootstrap using the Ansible playbooks:
+
+> [!NOTE]
+> Copy all SSH hosts keys to `~/.ssh/known_hosts` before running the playbooks (adjust IP address range to match your environment):
+>
+> ```bash
+> for ip in 192.168.1.{21..26}; do ssh-keyscan -H $ip >> ~/.ssh/known_hosts; done
+> ```
+
+```bash
 cd ../../../provisioning
 ansible-playbook playbooks/gitlab_runner.yaml --inventory=hosts-prod.yaml
 ansible-playbook playbooks/k8s.yaml --inventory=hosts-prod.yaml
 ```
 
-Or using Vagrant:
+#### Using Vagrant
+
+Provision infrastructure using Vagrant (automatically runs the Ansible playbooks):
 
 ```bash
 cd infra/test/gitlab_runner

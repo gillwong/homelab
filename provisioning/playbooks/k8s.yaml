@@ -8,12 +8,16 @@
       register: cloudinit_version_output
       changed_when: false
       ignore_errors: true
+      tags:
+        - always
 
     - name: Wait for cloud-init to finish
       when: cloudinit_version_output.rc == 0
       become: true
       ansible.builtin.command: cloud-init status --wait
       changed_when: true
+      tags:
+        - always
 
     - name: Upgrade all packages
       when: not ansible_check_mode and cloudinit_version_output.rc != 0
@@ -21,35 +25,52 @@
       ansible.builtin.dnf:
         name: "*"
         state: latest
+      tags:
+        - always
 
     - name: Reboot
       ansible.builtin.reboot:
+      tags:
+        - always
 
     - name: Configure common Kubernetes nodes requirements
       ansible.builtin.import_role:
         name: k8s_common
+      tags:
+        - k8s
+        - k8s_common
 
 - name: Setup Kubernetes control plane nodes
   hosts: k8s_control_plane
   become: true
+  tags:
+    - k8s
   tasks:
     - name: Configure Kubernetes control plane
       ansible.builtin.import_role:
         name: k8s_control_plane
+      tags:
+        - k8s_control_plane_common
 
 - name: Initialize Kubernetes control plane
   hosts: k8s_control_plane_primary
   become: true
+  tags:
+    - k8s
   tasks:
     - name: Initialize Kubernetes control plane
       ansible.builtin.import_role:
         name: k8s_control_plane_primary
+      tags:
+        - k8s_control_plane_primary
 
     - name: Save control plane certificate key
       no_log: true
       changed_when: false
       ansible.builtin.shell: set -o pipefail && kubeadm init phase upload-certs --upload-certs | tail -1
       register: k8s_control_plane_certificate_key
+      tags:
+        - k8s_control_plane_secondary
 
     - name: Save join command
       changed_when: false
@@ -59,6 +80,8 @@
 - name: Join Kubernetes control plane nodes
   hosts: k8s_control_plane_secondary
   become: true
+  tags:
+    - k8s
   tasks:
     - name: Join Kubernetes cluster as a control plane node
       ansible.builtin.import_role:
@@ -66,10 +89,14 @@
       vars:
         k8s_control_plane_secondary_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
         k8s_control_plane_secondary_certificate_key: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_control_plane_certificate_key']['stdout'] }}"
+      tags:
+        - k8s_control_plane_secondary
 
 - name: Join Kubernetes worker nodes
   hosts: k8s_worker
   become: true
+  tags:
+    - k8s
   tasks:
     - name: Join Kubernetes cluster as a worker node
       ansible.builtin.import_role:
@@ -80,6 +107,8 @@
 - name: Configure Flux
   hosts: k8s_control_plane
   become: true
+  tags:
+    - flux
   tasks:
     - name: Configure Flux role
       ansible.builtin.import_role:
