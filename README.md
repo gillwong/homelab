@@ -27,7 +27,7 @@ The homelab can be configured via Vagrant only or OpenTofu/Terraform only (eithe
 3. Create a Proxmox VE VM template using [this guide](https://github.com/Telmate/terraform-provider-proxmox/blob/master/docs/guides/cloud-init%20getting%20started.md). The homelab uses [AlmaLinux OS](https://almalinux.org) 9.5 (an open-source Linux distribution binary compatible with [RHEL](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)) and ID 900 for the VM template by default. Get the [cloud-init](https://cloud-init.io) images for AlmaLinux [here](https://wiki.almalinux.org/cloud/Generic-cloud.html). Replace the snippet provided in the guide by running:
 
 ```bash
-tee /var/lib/vz/snippets/qemu-guest-agent.yml <<EOF
+tee /var/lib/vz/snippets/qemu-guest-agent.yml << EOF
 #cloud-config
 runcmd:
   - dnf upgrade -y
@@ -36,7 +36,7 @@ runcmd:
 EOF
 ```
 
-4. View the `prod.tf` file and make changes as necessary, e.g., the Proxmox VE API URL for the provider, network and disk settings for the VM, etc. Optionally, create a `.tfvars` file to store variables
+4. View the Terraform files and make changes as necessary, e.g., the Proxmox VE API URL for the provider, network and disk settings for the VM, etc. Optionally, create an `.auto.tfvars` file to store [variables](https://opentofu.org/docs/language/values/variables/#variable-definitions-tfvars-files)
 
 ### Setup CaC
 
@@ -59,11 +59,17 @@ ansible-vault encrypt vault.yaml
 Provision infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
 
 ```bash
-cd infra
+cd infra/prod/gitlab_runner
 tofu init
-tofu plan -var-file=prod.tfvars -out=plan0
+tofu plan
 tofu apply plan0
-cd ../provisioning
+
+cd ../k8s
+tofu init
+tofu plan
+tofu apply plan0
+
+cd ../../../provisioning
 ansible-playbook playbooks/gitlab_runner.yaml --inventory=hosts-prod.yaml
 ansible-playbook playbooks/k8s.yaml --inventory=hosts-prod.yaml
 ```
@@ -73,6 +79,7 @@ Or using Vagrant:
 ```bash
 cd infra/test/gitlab_runner
 vagrant up
+
 cd ../k8s
 vagrant up
 ```
@@ -82,7 +89,10 @@ vagrant up
 Destroy infrastructure using OpenTofu (replace `tofu` with `terraform` if using Terraform):
 
 ```bash
-cd infra
+cd infra/prod/gitlab_runner
+tofu destroy
+
+cd ../k8s
 tofu destroy
 ```
 
@@ -91,6 +101,7 @@ Or using Vagrant:
 ```bash
 cd infra/test/gitlab_runner
 vagrant destroy
+
 cd ../k8s
 vagrant destroy
 ```
