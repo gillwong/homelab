@@ -56,7 +56,7 @@ resource "proxmox_vm_qemu" "k8s_cp" {
   automatic_reboot = true
 
   # Cloud-Init configuration
-  cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
+  cicustom   = "vendor=local:snippets/dnf-template.yml" # /var/lib/vz/snippets/dnf-template.yml
   ciupgrade  = true
   nameserver = "192.168.0.1"                                        # router IP
   ipconfig0  = "ip=192.168.1.${count.index + 21}/16,gw=192.168.0.1" # gateway set to router IP
@@ -116,7 +116,7 @@ resource "proxmox_vm_qemu" "k8s" {
   automatic_reboot = true
 
   # Cloud-Init configuration
-  cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
+  cicustom   = "vendor=local:snippets/dnf-template.yml" # /var/lib/vz/snippets/dnf-template.yml
   ciupgrade  = true
   nameserver = "192.168.0.1"                                                                             # router IP
   ipconfig0  = "ip=192.168.1.${count.index + 21 + var.k8s_config.control_plane_nodes}/16,gw=192.168.0.1" # gateway set to router IP

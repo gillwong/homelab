@@ -41,7 +41,7 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
   automatic_reboot = true
 
   # Cloud-Init configuration
-  cicustom   = "vendor=local:snippets/almalinux-template.yml" # /var/lib/vz/snippets/qemu-guest-agent-dnf.yml
+  cicustom   = "vendor=local:snippets/dnf-template.yml" # /var/lib/vz/snippets/dnf-template.yml
   ciupgrade  = true
   nameserver = "192.168.0.1"                       # router IP
   ipconfig0  = "ip=192.168.1.10/16,gw=192.168.0.1" # gateway set to router IP
