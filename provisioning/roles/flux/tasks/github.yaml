@@ -2,7 +2,7 @@
 - name: Bootstrap Flux with GitHub
   ansible.builtin.command:
     cmd: |
-      /usr/local/bin/flux --kubeconfig /etc/kubernetes/admin.conf bootstrap github
+      flux bootstrap github
         --components-extra=image-reflector-controller,image-automation-controller
         --token-auth=false
         --read-write-key=true

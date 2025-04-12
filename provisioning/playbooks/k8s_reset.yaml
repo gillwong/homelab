@@ -11,7 +11,7 @@
       ansible.builtin.file:
         path: /etc/cni/net.d
         state: absent
- 
+
     - name: Remove iptables configuration
       block:
         - name: Flush tables

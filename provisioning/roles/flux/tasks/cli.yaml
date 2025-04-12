@@ -20,3 +20,10 @@
       ansible.builtin.command:
         cmd: /usr/local/bin/flux-cli-install.sh
       changed_when: true
+
+- name: Create a flux symlink for root access
+  ansible.builtin.file:
+    src: /usr/local/bin/flux
+    dest: /usr/bin/flux
+    state: link
+    mode: "755"

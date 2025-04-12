@@ -4,14 +4,14 @@
 
 - name: Check cluster compatibility
   ansible.builtin.command:
-    cmd: /usr/local/bin/flux --kubeconfig /etc/kubernetes/admin.conf check --pre
+    cmd: flux check --pre
   register: flux_precheck_output
   failed_when: flux_precheck_output.rc != 0
   changed_when: false
 
 - name: Check Flux installation
   ansible.builtin.command:
-    cmd: /usr/local/bin/flux --kubeconfig /etc/kubernetes/admin.conf check
+    cmd: flux check
   register: flux_check_output
   changed_when: false
   ignore_errors: true

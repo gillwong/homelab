@@ -39,7 +39,26 @@
   ansible.builtin.get_url:
     url: "{{ k8s_common_base_url }}/{{ item }}"
     timeout: 30
-    dest: "/usr/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "755"
+  loop:
+    - kubeadm
+    - kubectl
+
+# TEMP BEGIN
+# - ansible.builtin.file:
+#     path: /usr/bin/{{ item }}
+#     state: absent
+#   loop:
+#     - kubeadm
+#     - kubectl
+# TEMP END
+
+- name: Create kubeadm & kubectl symlinks for root access
+  ansible.builtin.file:
+    src: /usr/local/bin/{{ item }}
+    dest: /usr/bin/{{ item }}
+    state: link
     mode: "755"
   loop:
     - kubeadm

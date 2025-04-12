@@ -14,6 +14,13 @@
     list_files: true
     mode: "755"
 
+- name: Create a crictl symlink for root access
+  ansible.builtin.file:
+    src: /usr/local/bin/crictl
+    dest: /usr/bin/crictl
+    state: link
+    mode: "755"
+
 # Reference: https://github.com/kubernetes-sigs/cri-tools/blob/master/docs/crictl.md
 - name: Configure crictl
   ansible.builtin.template:

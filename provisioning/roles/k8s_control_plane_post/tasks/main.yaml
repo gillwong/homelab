@@ -1,0 +1,30 @@
+---
+- name: Create ~/.kube directory if it doesn't exist
+  block:
+    - name: Create directory for root user
+      ansible.builtin.file:
+        path: ~root/.kube
+        state: directory
+        mode: "755"
+
+    - name: Create directory for Ansible user
+      ansible.builtin.file:
+        path: ~{{ ansible_user }}/.kube
+        state: directory
+        mode: "755"
+
+- name: Copy cluster admin kubeconfig to home directory
+  block:
+    - name: Copy for root user
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: ~root/.kube/config
+        remote_src: true
+        mode: "644"
+
+    - name: Copy for Ansible user
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: ~{{ ansible_user }}/.kube/config
+        remote_src: true
+        mode: "644"

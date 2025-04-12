@@ -15,11 +15,14 @@
       - --upload-certs
       - --pod-network-cidr={{ k8s_control_plane_primary_pod_network_cidr }}
 
+- name: Complete Kubernetes control plane post-initialization
+  ansible.builtin.import_role:
+    name: k8s_control_plane_post
+
 - name: Apply kube-router CNI/pod networking
   changed_when: true
   ansible.builtin.command:
     argv:
       - kubectl
-      - --kubeconfig=/etc/kubernetes/admin.conf
       - apply
-      - -f={{ k8s_control_plane_primary_kube_router_url }}
+      - --filename={{ k8s_control_plane_primary_kube_router_url }}
