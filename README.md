@@ -54,6 +54,8 @@ ansible-vault encrypt vault.yaml
 
 3. View the `hosts-prod.yaml` and make changes as necessary
 
+4. View variables under `provisioning/group_vars/` and make changes as necessary
+
 ### Provisioning
 
 #### Using OpenTofu/Terraform
