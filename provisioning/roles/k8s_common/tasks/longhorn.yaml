@@ -72,3 +72,17 @@
   ansible.builtin.dnf:
     name: nfs-utils
     state: present
+
+- name: Check if firewalld exists
+  changed_when: false
+  ansible.builtin.command: firewall-cmd --version
+  register: firewalld_version_output
+  ignore_errors: true
+
+# Reference: https://github.com/longhorn/longhorn/issues/8293#issuecomment-2033284076
+- name: Allow masquerading with firewalld
+  when: firewalld_version_output.rc == 0
+  ansible.posix.firewalld:
+    masquerade: true
+    state: enabled
+    permanent: true
