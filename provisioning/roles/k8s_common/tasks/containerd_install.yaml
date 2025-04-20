@@ -1,13 +1,15 @@
 ---
-- name: Install crun
-  ansible.builtin.package:
-    name: crun
-    state: present
-
-- name: Create a symlink from runc to crun
-  ansible.builtin.file:
-    src: /usr/bin/crun
+- name: Install runc
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_runc_url }}"
+    timeout: 30
     dest: /usr/local/sbin/runc
+    mode: "755"
+
+- name: Create a runc symlink for root access
+  ansible.builtin.file:
+    src: /usr/local/sbin/runc
+    dest: /usr/bin/runc
     state: link
     mode: "755"
 

@@ -1,4 +1,8 @@
 ---
+# runc
+k8s_common_runc_version: 1.2.6
+k8s_common_runc_url: https://github.com/opencontainers/runc/releases/download/v{{ k8s_common_runc_version }}/runc.amd64
+
 # containerd
 k8s_common_containerd_version: 2.0.4
 k8s_common_containerd_archive: containerd-{{ k8s_common_containerd_version }}-linux-amd64.tar.gz

@@ -20,9 +20,59 @@
     name: k8s_control_plane_post
 
 - name: Apply kube-router CNI/pod networking
-  changed_when: true
-  ansible.builtin.command:
-    argv:
-      - kubectl
-      - apply
-      - --filename={{ k8s_control_plane_primary_kube_router_url }}
+  block:
+    - name: Install Tigera operator
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - create
+          - --filename={{ k8s_control_plane_primary_tigera_operator_url }}
+
+    - name: Wait for Tigera operator to finish installation
+      changed_when: false
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --namespace=tigera-operator
+          - rollout
+          - status
+          - deployment
+          - tigera-operator
+          - --timeout=120s
+
+    - name: Copy Calico installation manifest
+      ansible.builtin.template:
+        src: calico.j2
+        dest: /tmp/calico.yaml
+        mode: "600"
+      register: calico_template_output
+
+    - name: Install Calico
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - create
+          - --filename={{ calico_template_output.dest }}
+
+    - name: Wait for calico-system namespace to be created
+      changed_when: false
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - wait
+          - --for=create
+          - namespace/calico-system
+          - --timeout=120s
+
+    - name: Wait for Calico to finish installation
+      changed_when: false
+      ansible.builtin.command:
+        argv:
+          - kubectl
+          - --namespace=calico-system
+          - wait
+          - --for=jsonpath=.status.numberReady=1
+          - daemonset.apps/calico-node
+          - --timeout=120s
