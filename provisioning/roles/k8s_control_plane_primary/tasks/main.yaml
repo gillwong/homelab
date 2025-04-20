@@ -13,6 +13,7 @@
       - init
       - --control-plane-endpoint={{ k8s_cluster_endpoint }}:6443
       - --upload-certs
+      - --apiserver-cert-extra-sans={{ k8s_control_plane_primary_extra_sans }}
       - --pod-network-cidr={{ k8s_control_plane_primary_pod_network_cidr }}
 
 - name: Complete Kubernetes control plane post-initialization

@@ -1,5 +1,6 @@
 ---
 k8s_control_plane_primary_pod_network_cidr: 10.244.0.0/16
+k8s_control_plane_primary_extra_sans: k8s.gillwong.com
 
 # Calico
 k8s_control_plane_primary_tigera_operator_version: 3.29.3

@@ -45,15 +45,6 @@
     - kubeadm
     - kubectl
 
-# TEMP BEGIN
-# - ansible.builtin.file:
-#     path: /usr/bin/{{ item }}
-#     state: absent
-#   loop:
-#     - kubeadm
-#     - kubectl
-# TEMP END
-
 - name: Create kubeadm & kubectl symlinks for root access
   ansible.builtin.file:
     src: /usr/local/bin/{{ item }}
