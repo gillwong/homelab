@@ -22,7 +22,7 @@ variable "ci_sshkey" {
 }
 
 provider "proxmox" {
-  pm_api_url  = "https://pve.gillwong.com:8006/api2/json" # URL to the Proxmox VE server
+  pm_api_url  = "https://pve.gillwong.com/api2/json" # URL to the Proxmox VE server
   pm_user     = "terraform-prov@pve"
   pm_password = var.pm_password
 }

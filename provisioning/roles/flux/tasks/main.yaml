@@ -1,5 +1,5 @@
 ---
-- name: Install Flux Flux CLI
+- name: Install Flux CLI
   ansible.builtin.import_tasks: cli.yaml
 
 - name: Check cluster compatibility
