@@ -8,7 +8,7 @@ storage:
   files:
     - path: /etc/hostname
       contents:
-        inline: k8s-worker-1
+        inline: {{ k8s_worker_name }}
     - path: /etc/sysctl.d/ipfwd.conf
       contents:
         inline: net.ipv4.ip_forward=1
@@ -42,6 +42,17 @@ storage:
     - path: /etc/kubeadm_join.yaml
       contents:
         inline: |
+          apiVersion: kubeadm.k8s.io/v1beta4
+          kind: JoinConfiguration
+          discovery:
+            bootstrapToken:
+              apiServerEndpoint: {{ k8s_worker_k8s_cluster_endpoint }}:6443
+              token: {{ k8s_worker_join_command.split()[4] }}
+              caCertHashes:
+                - {{ k8s_worker_join_command.split()[6] }}
+          nodeRegistration:
+            name: {{ k8s_worker_name }}
+          ---
           apiVersion: kubelet.config.k8s.io/v1beta1
           kind: KubeletConfiguration
           volumePluginDir: {{ k8s_worker_k8s_volume_plugin_dir }}
@@ -66,10 +77,7 @@ systemd:
         [Service]
         Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/bin"
         ExecStartPre=/opt/bin/kubeadm config images pull
-        ExecStartPre=/opt/bin/{{ k8s_worker_join_command }} --config /etc/kubeadm_join.yaml
-        ExecStartPre=/usr/bin/mkdir /home/core/.kube
-        ExecStartPre=/usr/bin/cp /etc/kubernetes/admin.conf /home/core/.kube/config
-        ExecStart=/usr/bin/chown -R core:core /home/core/.kube
+        ExecStart=/opt/bin/kubeadm join --config /etc/kubeadm_join.yaml
         TimeoutSec=600
         [Install]
         WantedBy=multi-user.target

@@ -81,13 +81,24 @@
   remote_user: root
   tasks:
     - name: Configure Kubernetes worker nodes
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: k8s_worker
       vars:
-        k8s_worker_vmid: 122
-        k8s_worker_ip: 192.168.1.22
+        k8s_worker_vmid: "{{ item.vmid }}"
+        k8s_worker_ip: "{{ item.ip }}"
+        k8s_worker_name: "{{ item.name }}"
         k8s_worker_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
         k8s_worker_pve_ignition_path: "{{ ignition_path }}"
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
+      loop:
+        - vmid: 122
+          ip: 192.168.1.22
+          name: k8s-worker-1
+        - vmid: 123
+          ip: 192.168.1.23
+          name: k8s-worker-2
+        - vmid: 124
+          ip: 192.168.1.24
+          name: k8s-worker-3
   tags:
     - k8s_worker_provision
