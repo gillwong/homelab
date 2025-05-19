@@ -1,0 +1,21 @@
+---
+- name: Check Butane version
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.command:
+    argv:
+      - butane
+      - --version
+  register: butane_version_output
+
+- name: Transpile Butane to Ignition file
+  when: butane_version_output.rc == 0
+  changed_when: true
+  ansible.builtin.command:
+    argv:
+      - butane
+      - --pretty
+      - --strict
+      - "{{ butane_transpiler_input_path }}"
+      - --output
+      - "{{ butane_transpiler_output_path }}"

@@ -1,3 +1,0 @@
----
-k8s_cluster_endpoint: 192.168.1.20 # prod infra; test infra sets this variable in the Vagrantfile
-flux_github_token: "{{ vault_flux_github_token }}"
