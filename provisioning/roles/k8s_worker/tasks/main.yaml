@@ -1,0 +1,93 @@
+---
+- name: Copy Butane file
+  ansible.builtin.template:
+    src: worker.bu.j2
+    dest: "{{ k8s_worker_pve_ignition_path }}/worker.bu"
+    mode: "644"
+
+- name: Transpile Butane to Ignition file
+  ansible.builtin.import_role:
+    name: butane_transpiler
+  vars:
+    butane_transpiler_input_path: "{{ k8s_worker_pve_ignition_path }}/worker.bu"
+    butane_transpiler_output_path: "{{ k8s_worker_pve_ignition_path }}/worker.ign"
+
+- name: Create VM
+  changed_when: true
+  ansible.builtin.command:
+    argv:
+      - qm
+      - create
+      - "{{ k8s_worker_vmid }}"
+      - --name
+      - k8s-cp
+      - --cores
+      - "{{ k8s_worker_cores }}"
+      - --memory
+      - "{{ k8s_worker_memory }}"
+      - --net0
+      - virtio,bridge=vmbr0
+      - --scsihw
+      - virtio-scsi-pci
+
+- name: Configure VM
+  block:
+    - name: Set storage
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - qm
+          - set
+          - "{{ k8s_worker_vmid }}"
+          - --scsi0
+          - local-lvm:0,import-from={{ k8s_worker_pve_ignition_path }}/flatcar_production_qemu_image.img,discard=on,ssd=1
+
+    - name: Set boot order
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - qm
+          - set
+          - "{{ k8s_worker_vmid }}"
+          - --boot
+          - order=scsi0
+
+    - name: Set graphics card
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - qm
+          - set
+          - "{{ k8s_worker_vmid }}"
+          - --serial0
+          - socket
+          - --vga
+          - qxl
+
+    - name: Enable QEMU agent
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - qm
+          - set
+          - "{{ k8s_worker_vmid }}"
+          - --agent
+          - enabled=1
+
+    - name: Set Ignition file
+      changed_when: true
+      ansible.builtin.command:
+        argv:
+          - qm
+          - set
+          - "{{ k8s_worker_vmid }}"
+          - --args
+          - "-fw_cfg name=opt/org.flatcar-linux/config,file={{ k8s_worker_pve_ignition_path }}/worker.ign"
+
+- name: Start VM
+  changed_when: true
+  ansible.builtin.command:
+    argv:
+      - qm
+      - start
+      - "{{ k8s_worker_vmid }}"

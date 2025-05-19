@@ -1,0 +1,75 @@
+variant: flatcar
+version: 1.0.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys: {{ k8s_worker_ign_ssh_authorized_keys }}
+storage:
+  files:
+    - path: /etc/hostname
+      contents:
+        inline: k8s-worker-1
+    - path: /etc/sysctl.d/ipfwd.conf
+      contents:
+        inline: net.ipv4.ip_forward=1
+    - path: /etc/sysctl.d/increaseusers.conf
+      contents:
+        inline: fs.inotify.max_user_instances=1500
+    - path: /opt/bin/kubeadm
+      mode: 0755
+      contents:
+        source: {{ k8s_worker_k8s_common_base_url }}/kubeadm
+    - path: /opt/bin/kubelet
+      mode: 0755
+      contents:
+        source: {{ k8s_worker_k8s_common_base_url }}/kubelet
+    - path: /etc/systemd/network/00-eth0.network
+      contents:
+        inline: |
+          [Match]
+          Name=eth0
+
+          [Network]
+          DNS=192.168.0.1
+          Address={{ k8s_worker_ip }}/16
+          Gateway=192.168.0.1
+    - path: /etc/systemd/system/kubelet.service
+      contents:
+        source: {{ k8s_worker_k8s_misc_base_url }}/kubelet/kubelet.service
+    - path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+      contents:
+        source: {{ k8s_worker_k8s_misc_base_url }}/kubeadm/10-kubeadm.conf
+    - path: /etc/kubeadm_join.yaml
+      contents:
+        inline: |
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          volumePluginDir: {{ k8s_worker_k8s_volume_plugin_dir }}
+systemd:
+  units:
+    - name: kubelet.service
+      enabled: true
+      dropins:
+        - name: 20-kubelet.conf
+          contents: |
+            [Service]
+            ExecStart=
+            ExecStart=/opt/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
+    - name: kubeadm.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Kubeadm service
+        Requires=containerd.service
+        After=containerd.service
+        ConditionPathExists=!/etc/kubernetes/kubelet.conf
+        [Service]
+        Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/bin"
+        ExecStartPre=/opt/bin/kubeadm config images pull
+        ExecStartPre=/opt/bin/{{ k8s_worker_join_command }} --config /etc/kubeadm_join.yaml
+        ExecStartPre=/usr/bin/mkdir /home/core/.kube
+        ExecStartPre=/usr/bin/cp /etc/kubernetes/admin.conf /home/core/.kube/config
+        ExecStart=/usr/bin/chown -R core:core /home/core/.kube
+        TimeoutSec=600
+        [Install]
+        WantedBy=multi-user.target

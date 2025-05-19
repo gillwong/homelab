@@ -114,7 +114,7 @@ storage:
               - name: vip_retryperiod
                 value: "1"
               - name: address
-                value: {{ k8s_cluster_endpoint }}
+                value: {{ k8s_control_plane_k8s_cluster_endpoint }}
               - name: prometheus_server
                 value: :2112
               image: ghcr.io/kube-vip/kube-vip:v0.8.9
@@ -138,6 +138,33 @@ storage:
             - hostPath:
                 path: /etc/kubernetes/super-admin.conf
               name: kubeconfig
+    - path: /home/core/calico.yaml
+      contents:
+        inline: |
+          # This section includes base Calico installation configuration.
+          # For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.Installation
+          apiVersion: operator.tigera.io/v1
+          kind: Installation
+          metadata:
+            name: default
+          spec:
+            # Configures Calico networking.
+            calicoNetwork:
+              ipPools:
+                - name: default-ipv4-ippool
+                  blockSize: 26
+                  cidr: {{ k8s_control_plane_k8s_pod_subnet }}
+                  encapsulation: VXLANCrossSubnet
+                  natOutgoing: Enabled
+                  nodeSelector: all()
+          ---
+          # This section configures the Calico API server.
+          # For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.APIServer
+          apiVersion: operator.tigera.io/v1
+          kind: APIServer
+          metadata:
+            name: default
+          spec: {}
 systemd:
   units:
     - name: kubelet.service
@@ -162,7 +189,8 @@ systemd:
         ExecStartPre=/opt/bin/kubeadm init --config /etc/kubeadm_init.yaml
         ExecStartPre=/usr/bin/mkdir /home/core/.kube
         ExecStartPre=/usr/bin/cp /etc/kubernetes/admin.conf /home/core/.kube/config
-        ExecStart=/usr/bin/chown -R core:core /home/core/.kube
+        ExecStartPre=/usr/bin/chown -R core:core /home/core/.kube
+        ExecStart=/usr/bin/touch /home/core/kubeadm_complete
         TimeoutSec=600
         [Install]
         WantedBy=multi-user.target

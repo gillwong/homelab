@@ -1,11 +1,93 @@
 ---
-- name: Setup Kubernetes control plane node
+- name: Provision Kubernetes primary control plane node
   hosts: pve
   remote_user: root
   tasks:
-    - name: Configure Kubernetes nodes
+    - name: Configure Kubernetes primary control plane node
       ansible.builtin.import_role:
-        name: k8s
+        name: k8s_control_plane
       vars:
-        k8s_pve_ignition_path: "{{ ignition_path }}"
-        k8s_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
+        k8s_control_plane_vmid: 121
+        k8s_control_plane_ip: 192.168.1.21
+        k8s_control_plane_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
+        k8s_control_plane_pve_ignition_path: "{{ ignition_path }}"
+
+    - name: Wait for Kubernetes primary control plane node to be accessible
+      ansible.builtin.wait_for:
+        host: 192.168.1.21
+        port: 22
+        delay: 30
+        state: started
+        timeout: 300
+    
+    - name: Wait for Kubernetes primary control plane node to be accessible via SSH
+      ansible.builtin.wait_for:
+        timeout: 120
+  tags:
+    - k8s_control_plane_primary_provision
+
+- name: Post-setup Kubernetes primary control plane node
+  hosts: k8s_control_plane_primary
+  remote_user: core
+  gather_facts: false
+  tasks:
+    - name: Wait for kubeadm systemd service to finish
+      ansible.builtin.raw: until [ -f /home/core/kubeadm_complete ]; do sleep 10; done
+    
+    - name: Remove kubeadm system service complete signaling file
+      ansible.builtin.raw: rm -f /home/core/kubeadm_complete
+
+    - name: Install Tigera operator
+      ansible.builtin.raw: /opt/bin/kubectl create --filename=https://raw.githubusercontent.com/projectcalico/calico/v3.30.0/manifests/tigera-operator.yaml
+    
+    - name: Wait for Tigera operator to finish installation
+      ansible.builtin.raw: /opt/bin/kubectl --namespace=tigera-operator rollout status deployment tigera-operator --timeout=120s && sleep 15
+      args:
+        executable: /usr/bin/bash
+    
+    - name: Install Calico
+      ansible.builtin.raw: /opt/bin/kubectl create --filename=/home/core/calico.yaml
+    
+    - name: Wait for the calico-system namespace to be created
+      ansible.builtin.raw: /opt/bin/kubectl wait --for=create namespace/calico-system --timeout=120s && sleep 15
+      args:
+        executable: /usr/bin/bash
+    
+    - name: Wait for Calico to finish installation
+      ansible.builtin.raw: /opt/bin/kubectl --namespace=calico-system wait --for=jsonpath=.status.numberReady=1 daemonset.apps/calico-node --timeout=120s
+  tags:
+    - k8s_control_plane_primary_post
+    
+- name: Obtain kubeadm join variables
+  hosts: k8s_control_plane_primary
+  remote_user: core
+  gather_facts: false
+  tasks:
+    - name: Save control plane certificate key
+      no_log: true
+      ansible.builtin.raw: set -o pipefail && /usr/bin/sudo /opt/bin/kubeadm init phase upload-certs --upload-certs | tail -1
+      args:
+        executable: /usr/bin/bash
+      register: k8s_control_plane_certificate_key
+
+    - name: Save join command
+      ansible.builtin.raw: /opt/bin/kubeadm token create --print-join-command
+      args:
+        executable: /usr/bin/bash
+      register: k8s_kubeadm_join_command
+
+- name: Provision Kubernetes worker nodes
+  hosts: pve
+  remote_user: root
+  tasks:
+    - name: Configure Kubernetes worker nodes
+      ansible.builtin.import_role:
+        name: k8s_worker
+      vars:
+        k8s_worker_vmid: 122
+        k8s_worker_ip: 192.168.1.22
+        k8s_worker_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
+        k8s_worker_pve_ignition_path: "{{ ignition_path }}"
+        k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
+  tags:
+    - k8s_worker_provision

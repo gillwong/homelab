@@ -6,3 +6,7 @@ pve:
 gitlab_runner:
   hosts:
     192.168.1.10:
+
+k8s_control_plane_primary:
+  hosts:
+    192.168.1.21:
