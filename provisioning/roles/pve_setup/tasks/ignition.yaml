@@ -1,0 +1,13 @@
+---
+- name: Create Ignition files directory
+  ansible.builtin.file:
+    path: "{{ pve_setup_ignition_path }}"
+    state: directory
+    mode: "755"
+
+- name: Install Butane to Ignition transpiler
+  ansible.builtin.get_url:
+    url: "{{ pve_setup_butane_url }}"
+    timeout: 30
+    dest: /usr/local/bin/butane
+    mode: "755"

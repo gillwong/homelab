@@ -1,0 +1,4 @@
+#cloud-config
+runcmd:
+  - dnf install -y qemu-guest-agent python
+  - systemctl start qemu-guest-agent

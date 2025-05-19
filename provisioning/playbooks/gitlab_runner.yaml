@@ -1,6 +1,7 @@
 ---
 - name: Provision GitLab Runner
   hosts: gitlab_runner
+  remote_user: almalinux
   tasks:
     - name: Check if using cloud-init
       ansible.builtin.command: cloud-init --version

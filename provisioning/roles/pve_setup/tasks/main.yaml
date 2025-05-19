@@ -1,0 +1,15 @@
+---
+- name: Configure cloud-init files
+  ansible.builtin.import_tasks: cloud_init.yaml
+
+- name: Configure Butane and Ignition files
+  ansible.builtin.import_tasks: ignition.yaml
+
+- name: Download Flatcar Container Linux QEMU image
+  ansible.builtin.get_url:
+    url: "{{ pve_setup_flatcar_qemu_img_url }}"
+    timeout: 60
+    dest: "{{ pve_setup_ignition_path }}/flatcar_production_qemu_image.img"
+    mode: "644"
+  tags:
+    - download_flatcar

@@ -1,0 +1,4 @@
+---
+ansible_python_interpreter: /usr/bin/python3
+ignition_path: /var/lib/vz/ignition
+ign_authorized_ssh_keys: "{{ vault_ign_authorized_ssh_keys }}"

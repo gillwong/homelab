@@ -1,0 +1,8 @@
+---
+- name: Create cloud-init snippets
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: /var/lib/vz/snippets/{{ item | regex_replace('^(.+)\\.j2$', '\\1') }}
+    mode: "644"
+  loop:
+    - dnf_template.yaml.j2

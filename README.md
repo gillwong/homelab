@@ -27,7 +27,7 @@ The homelab can be configured via Vagrant only or OpenTofu/Terraform only (eithe
 3. Create a Proxmox VE VM template using [this guide](https://github.com/Telmate/terraform-provider-proxmox/blob/master/docs/guides/cloud-init%20getting%20started.md). The homelab uses [AlmaLinux OS](https://almalinux.org) 9.5 (an open-source Linux distribution binary compatible with [RHEL](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)) and ID 900 for the VM template by default. Get the [cloud-init](https://cloud-init.io) images for AlmaLinux [here](https://wiki.almalinux.org/cloud/Generic-cloud.html). Replace the snippet provided in the guide by running:
 
 ```bash
-tee /var/lib/vz/snippets/dnf-template.yml << EOF
+tee /var/lib/vz/snippets/dnf_template.yaml << EOF
 #cloud-config
 runcmd:
   - dnf upgrade -y
