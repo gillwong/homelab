@@ -33,30 +33,11 @@
   remote_user: core
   gather_facts: false
   tasks:
-    - name: Wait for kubeadm systemd service to finish
-      ansible.builtin.raw: until [ -f /home/core/kubeadm_complete ]; do sleep 10; done
-    
-    - name: Remove kubeadm system service complete signaling file
-      ansible.builtin.raw: rm -f /home/core/kubeadm_complete
-
-    - name: Install Tigera operator
-      ansible.builtin.raw: /opt/bin/kubectl create --filename=https://raw.githubusercontent.com/projectcalico/calico/v3.30.0/manifests/tigera-operator.yaml
-    
-    - name: Wait for Tigera operator to finish installation
-      ansible.builtin.raw: /opt/bin/kubectl --namespace=tigera-operator rollout status deployment tigera-operator --timeout=120s && sleep 15
+    - name: Setup pod networking
+      ansible.builtin.script:
+        cmd: ../scripts/setup_pod_network.sh
       args:
         executable: /usr/bin/bash
-    
-    - name: Install Calico
-      ansible.builtin.raw: /opt/bin/kubectl create --filename=/home/core/calico.yaml
-    
-    - name: Wait for the calico-system namespace to be created
-      ansible.builtin.raw: /opt/bin/kubectl wait --for=create namespace/calico-system --timeout=120s && sleep 15
-      args:
-        executable: /usr/bin/bash
-    
-    - name: Wait for Calico to finish installation
-      ansible.builtin.raw: /opt/bin/kubectl --namespace=calico-system wait --for=jsonpath=.status.numberReady=1 daemonset.apps/calico-node --timeout=120s
   tags:
     - k8s_control_plane
     - k8s_control_plane_primary

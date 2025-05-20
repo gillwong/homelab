@@ -1,0 +1,17 @@
+---
+- name: Delete Kubernetes cluster
+  hosts: pve
+  remote_user: root
+  tasks:
+    - name: Shutdown and destroy VM
+      ansible.builtin.include_role:
+        name: pve_destroy
+      vars:
+        pve_destroy_vmid: "{{ item }}"
+      loop:
+        - 121
+        - 122
+        - 123
+        - 124
+        - 125
+        - 126
