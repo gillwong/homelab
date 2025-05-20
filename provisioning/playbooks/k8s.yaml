@@ -7,10 +7,10 @@
       ansible.builtin.import_role:
         name: k8s_control_plane_primary
       vars:
-        k8s_control_plane_vmid: 121
-        k8s_control_plane_ip: 192.168.1.21
-        k8s_control_plane_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
-        k8s_control_plane_pve_ignition_path: "{{ ignition_path }}"
+        k8s_control_plane_primary_vmid: 121
+        k8s_control_plane_primary_ip: 192.168.1.21
+        k8s_control_plane_primary_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
+        k8s_control_plane_primary_pve_ignition_path: "{{ ignition_path }}"
 
     - name: Wait for Kubernetes primary control plane node to be accessible
       ansible.builtin.wait_for:
