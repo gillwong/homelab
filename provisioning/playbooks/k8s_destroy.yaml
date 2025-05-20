@@ -8,10 +8,4 @@
         name: pve_destroy
       vars:
         pve_destroy_vmid: "{{ item }}"
-      loop:
-        - 121
-        - 122
-        - 123
-        - 124
-        - 125
-        - 126
+      loop: "{{ [k8s.control_plane.primary.vmid] + (k8s.control_plane.secondary | map(attribute='vmid') | list) + (k8s.worker | map(attribute='vmid') | list) }}"

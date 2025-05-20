@@ -7,14 +7,14 @@
       ansible.builtin.import_role:
         name: k8s_control_plane_primary
       vars:
-        k8s_control_plane_primary_vmid: 121
-        k8s_control_plane_primary_ip: 192.168.1.21
+        k8s_control_plane_primary_vmid: "{{ k8s.control_plane.primary.vmid }}"
+        k8s_control_plane_primary_ip: "{{ k8s.control_plane.primary.ip }}"
         k8s_control_plane_primary_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
         k8s_control_plane_primary_pve_ignition_path: "{{ ignition_path }}"
 
     - name: Wait for Kubernetes primary control plane node to be accessible
       ansible.builtin.wait_for:
-        host: 192.168.1.21
+        host: "{{ k8s.control_plane.primary.ip }}"
         port: 22
         delay: 30
         state: started
@@ -76,13 +76,7 @@
         k8s_control_plane_secondary_pve_ignition_path: "{{ ignition_path }}"
         k8s_control_plane_secondary_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
         k8s_control_plane_secondary_cert_key: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_control_plane_cert_key']['stdout'] }}"
-      loop:
-        - vmid: 122
-          ip: 192.168.1.22
-          name: k8s-cp-2
-        - vmid: 123
-          ip: 192.168.1.23
-          name: k8s-cp-3
+      loop: "{{ k8s.control_plane.secondary }}"
   tags:
     - k8s_control_plane
     - k8s_control_plane_secondary
@@ -102,16 +96,7 @@
         k8s_worker_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
         k8s_worker_pve_ignition_path: "{{ ignition_path }}"
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
-      loop:
-        - vmid: 124
-          ip: 192.168.1.24
-          name: k8s-worker-1
-        - vmid: 125
-          ip: 192.168.1.25
-          name: k8s-worker-2
-        - vmid: 126
-          ip: 192.168.1.26
-          name: k8s-worker-3
+      loop: "{{ k8s.worker }}"
   tags:
     - k8s_worker
     - k8s_worker_provision

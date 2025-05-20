@@ -2,3 +2,26 @@
 ansible_python_interpreter: /usr/bin/python3
 ignition_path: /var/lib/vz/ignition
 ign_authorized_ssh_keys: "{{ vault_ign_authorized_ssh_keys }}"
+
+k8s:
+  control_plane:
+    primary:
+      vmid: 121
+      ip: 192.168.1.21
+    secondary:
+      - vmid: 122
+        ip: 192.168.1.22
+        name: k8s-cp-2
+      - vmid: 123
+        ip: 192.168.1.23
+        name: k8s-cp-3
+  worker:
+    - vmid: 124
+      ip: 192.168.1.24
+      name: k8s-worker-1
+    - vmid: 125
+      ip: 192.168.1.25
+      name: k8s-worker-2
+    - vmid: 126
+      ip: 192.168.1.26
+      name: k8s-worker-3
