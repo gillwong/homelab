@@ -5,7 +5,7 @@
   tasks:
     - name: Configure Kubernetes primary control plane node
       ansible.builtin.import_role:
-        name: k8s_control_plane
+        name: k8s_control_plane_primary
       vars:
         k8s_control_plane_vmid: 121
         k8s_control_plane_ip: 192.168.1.21
@@ -24,6 +24,8 @@
       ansible.builtin.wait_for:
         timeout: 120
   tags:
+    - k8s_control_plane
+    - k8s_control_plane_primary
     - k8s_control_plane_primary_provision
 
 - name: Post-setup Kubernetes primary control plane node
@@ -56,6 +58,8 @@
     - name: Wait for Calico to finish installation
       ansible.builtin.raw: /opt/bin/kubectl --namespace=calico-system wait --for=jsonpath=.status.numberReady=1 daemonset.apps/calico-node --timeout=120s
   tags:
+    - k8s_control_plane
+    - k8s_control_plane_primary
     - k8s_control_plane_primary_post
     
 - name: Obtain kubeadm join variables
@@ -68,13 +72,40 @@
       ansible.builtin.raw: set -o pipefail && /usr/bin/sudo /opt/bin/kubeadm init phase upload-certs --upload-certs | tail -1
       args:
         executable: /usr/bin/bash
-      register: k8s_control_plane_certificate_key
+      register: k8s_control_plane_cert_key
 
     - name: Save join command
       ansible.builtin.raw: /opt/bin/kubeadm token create --print-join-command
       args:
         executable: /usr/bin/bash
       register: k8s_kubeadm_join_command
+
+- name: Provision Kubernetes secondary control plane nodes
+  hosts: pve
+  remote_user: root
+  tasks:
+    - name: Configure Kubernetes secondary control plane nodes
+      ansible.builtin.include_role:
+        name: k8s_control_plane_secondary
+      vars:
+        k8s_control_plane_secondary_vmid: "{{ item.vmid }}"
+        k8s_control_plane_secondary_ip: "{{ item.ip }}"
+        k8s_control_plane_secondary_name: "{{ item.name }}"
+        k8s_control_plane_secondary_ign_ssh_authorized_keys: "{{ ign_authorized_ssh_keys }}"
+        k8s_control_plane_secondary_pve_ignition_path: "{{ ignition_path }}"
+        k8s_control_plane_secondary_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
+        k8s_control_plane_secondary_cert_key: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_control_plane_cert_key']['stdout'] }}"
+      loop:
+        - vmid: 122
+          ip: 192.168.1.22
+          name: k8s-cp-2
+        - vmid: 123
+          ip: 192.168.1.23
+          name: k8s-cp-3
+  tags:
+    - k8s_control_plane
+    - k8s_control_plane_secondary
+    - k8s_control_plane_secondary_provision
 
 - name: Provision Kubernetes worker nodes
   hosts: pve
@@ -91,14 +122,15 @@
         k8s_worker_pve_ignition_path: "{{ ignition_path }}"
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout_lines'][0] }}"
       loop:
-        - vmid: 122
-          ip: 192.168.1.22
-          name: k8s-worker-1
-        - vmid: 123
-          ip: 192.168.1.23
-          name: k8s-worker-2
         - vmid: 124
           ip: 192.168.1.24
+          name: k8s-worker-1
+        - vmid: 125
+          ip: 192.168.1.25
+          name: k8s-worker-2
+        - vmid: 126
+          ip: 192.168.1.26
           name: k8s-worker-3
   tags:
+    - k8s_worker
     - k8s_worker_provision

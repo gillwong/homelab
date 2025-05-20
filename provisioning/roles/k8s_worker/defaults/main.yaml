@@ -2,6 +2,8 @@
 k8s_worker_cores: 2
 k8s_worker_memory: 4096
 
+k8s_worker_ignition_prefix: worker_
+
 # kubelet, kubeadm
 k8s_worker_k8s_common_version: 1.33.1
 k8s_worker_k8s_common_base_url: https://dl.k8s.io/release/v{{ k8s_worker_k8s_common_version }}/bin/linux/amd64
@@ -9,7 +11,5 @@ k8s_worker_k8s_common_base_url: https://dl.k8s.io/release/v{{ k8s_worker_k8s_com
 # Kubernetes misc files
 k8s_worker_k8s_misc_version: 0.16.2
 k8s_worker_k8s_misc_base_url: https://raw.githubusercontent.com/kubernetes/release/v{{ k8s_worker_k8s_misc_version }}/cmd/krel/templates/latest
-
-k8s_worker_k8s_volume_plugin_dir: /opt/libexec/kubernetes/kubelet-plugins/volume/exec/
 
 k8s_worker_k8s_cluster_endpoint: 192.168.1.20

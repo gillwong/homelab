@@ -3,12 +3,12 @@ version: 1.0.0
 passwd:
   users:
     - name: core
-      ssh_authorized_keys: {{ k8s_control_plane_ign_ssh_authorized_keys }}
+      ssh_authorized_keys: {{ k8s_control_plane_secondary_ign_ssh_authorized_keys }}
 storage:
   files:
     - path: /etc/hostname
       contents:
-        inline: k8s-cp
+        inline: {{ k8s_control_plane_secondary_name }}
     - path: /etc/sysctl.d/ipfwd.conf
       contents:
         inline: net.ipv4.ip_forward=1
@@ -18,15 +18,15 @@ storage:
     - path: /opt/bin/kubectl
       mode: 0755
       contents:
-        source: {{ k8s_control_plane_k8s_common_base_url }}/kubectl
+        source: {{ k8s_control_plane_secondary_k8s_common_base_url }}/kubectl
     - path: /opt/bin/kubeadm
       mode: 0755
       contents:
-        source: {{ k8s_control_plane_k8s_common_base_url }}/kubeadm
+        source: {{ k8s_control_plane_secondary_k8s_common_base_url }}/kubeadm
     - path: /opt/bin/kubelet
       mode: 0755
       contents:
-        source: {{ k8s_control_plane_k8s_common_base_url }}/kubelet
+        source: {{ k8s_control_plane_secondary_k8s_common_base_url }}/kubelet
     - path: /etc/systemd/network/00-eth0.network
       contents:
         inline: |
@@ -35,37 +35,30 @@ storage:
 
           [Network]
           DNS=192.168.0.1
-          Address={{ k8s_control_plane_ip }}/16
+          Address={{ k8s_control_plane_secondary_ip }}/16
           Gateway=192.168.0.1
     - path: /etc/systemd/system/kubelet.service
       contents:
-        source: {{ k8s_control_plane_k8s_misc_base_url }}/kubelet/kubelet.service
+        source: {{ k8s_control_plane_secondary_k8s_misc_base_url }}/kubelet/kubelet.service
     - path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
       contents:
-        source: {{ k8s_control_plane_k8s_misc_base_url }}/kubeadm/10-kubeadm.conf
-    - path: /etc/kubeadm_init.yaml
+        source: {{ k8s_control_plane_secondary_k8s_misc_base_url }}/kubeadm/10-kubeadm.conf
+    - path: /etc/kubeadm_join.yaml
       contents:
         inline: |
           apiVersion: kubeadm.k8s.io/v1beta4
-          kind: InitConfiguration
-          localAPIEndpoint:
-            advertiseAddress: {{ k8s_control_plane_ip }}
-            bindPort: 6443
-          ---
-          apiVersion: kubeadm.k8s.io/v1beta4
-          kind: ClusterConfiguration
-          controllerManager:
-            extraArgs:
-              - name: flex-volume-plugin-dir
-                value: {{ k8s_control_plane_k8s_volume_plugin_dir }}
-          networking:
-            serviceSubnet: {{ k8s_control_plane_k8s_service_subnet }}
-            podSubnet: {{ k8s_control_plane_k8s_pod_subnet }}
-          controlPlaneEndpoint: {{ k8s_control_plane_k8s_cluster_endpoint }}:6443
-          ---
-          apiVersion: kubelet.config.k8s.io/v1beta1
-          kind: KubeletConfiguration
-          volumePluginDir: {{ k8s_control_plane_k8s_volume_plugin_dir }}
+          kind: JoinConfiguration
+          discovery:
+            bootstrapToken:
+              apiServerEndpoint: {{ k8s_control_plane_secondary_k8s_cluster_endpoint }}:6443
+              token: {{ k8s_control_plane_secondary_join_command.split()[4] }}
+              caCertHashes:
+                - {{ k8s_control_plane_secondary_join_command.split()[6] }}
+          controlPlane:
+            localAPIEndpoint:
+              advertiseAddress: {{ k8s_control_plane_secondary_ip }}
+              bindPort: 6443
+            certificateKey: {{ k8s_control_plane_secondary_cert_key }}
     - path: /etc/kubernetes/manifests/kube-vip.yaml
       contents:
         inline: |
@@ -114,7 +107,7 @@ storage:
               - name: vip_retryperiod
                 value: "1"
               - name: address
-                value: {{ k8s_control_plane_k8s_cluster_endpoint }}
+                value: {{ k8s_control_plane_secondary_k8s_cluster_endpoint }}
               - name: prometheus_server
                 value: :2112
               image: ghcr.io/kube-vip/kube-vip:v0.8.9
@@ -136,35 +129,8 @@ storage:
             hostNetwork: true
             volumes:
             - hostPath:
-                path: /etc/kubernetes/super-admin.conf
+                path: /etc/kubernetes/admin.conf
               name: kubeconfig
-    - path: /home/core/calico.yaml
-      contents:
-        inline: |
-          # This section includes base Calico installation configuration.
-          # For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.Installation
-          apiVersion: operator.tigera.io/v1
-          kind: Installation
-          metadata:
-            name: default
-          spec:
-            # Configures Calico networking.
-            calicoNetwork:
-              ipPools:
-                - name: default-ipv4-ippool
-                  blockSize: 26
-                  cidr: {{ k8s_control_plane_k8s_pod_subnet }}
-                  encapsulation: VXLANCrossSubnet
-                  natOutgoing: Enabled
-                  nodeSelector: all()
-          ---
-          # This section configures the Calico API server.
-          # For more information, see: https://docs.tigera.io/calico/latest/reference/installation/api#operator.tigera.io/v1.APIServer
-          apiVersion: operator.tigera.io/v1
-          kind: APIServer
-          metadata:
-            name: default
-          spec: {}
 systemd:
   units:
     - name: kubelet.service
@@ -186,11 +152,10 @@ systemd:
         [Service]
         Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/bin"
         ExecStartPre=/opt/bin/kubeadm config images pull
-        ExecStartPre=/opt/bin/kubeadm init --config /etc/kubeadm_init.yaml
+        ExecStartPre=/opt/bin/kubeadm join --config /etc/kubeadm_join.yaml
         ExecStartPre=/usr/bin/mkdir /home/core/.kube
         ExecStartPre=/usr/bin/cp /etc/kubernetes/admin.conf /home/core/.kube/config
-        ExecStartPre=/usr/bin/chown -R core:core /home/core/.kube
-        ExecStart=/usr/bin/touch /home/core/kubeadm_complete
+        ExecStart=/usr/bin/chown -R core:core /home/core/.kube
         TimeoutSec=600
         [Install]
         WantedBy=multi-user.target

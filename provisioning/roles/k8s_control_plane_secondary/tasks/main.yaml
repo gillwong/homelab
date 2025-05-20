@@ -1,16 +1,16 @@
 ---
 - name: Copy Butane file
   ansible.builtin.template:
-    src: control_plane.bu.j2
-    dest: "{{ k8s_control_plane_pve_ignition_path }}/control_plane.bu"
+    src: control_plane_secondary.bu.j2
+    dest: "{{ k8s_control_plane_secondary_pve_ignition_path }}/{{ k8s_control_plane_secondary_ignition_prefix }}{{ k8s_control_plane_secondary_vmid }}.bu"
     mode: "644"
 
 - name: Transpile Butane to Ignition file
   ansible.builtin.import_role:
     name: butane_transpiler
   vars:
-    butane_transpiler_input_path: "{{ k8s_control_plane_pve_ignition_path }}/control_plane.bu"
-    butane_transpiler_output_path: "{{ k8s_control_plane_pve_ignition_path }}/control_plane.ign"
+    butane_transpiler_input_path: "{{ k8s_control_plane_secondary_pve_ignition_path }}/{{ k8s_control_plane_secondary_ignition_prefix }}{{ k8s_control_plane_secondary_vmid }}.bu"
+    butane_transpiler_output_path: "{{ k8s_control_plane_secondary_pve_ignition_path }}/{{ k8s_control_plane_secondary_ignition_prefix }}{{ k8s_control_plane_secondary_vmid }}.ign"
 
 - name: Create VM
   changed_when: true
@@ -18,13 +18,13 @@
     argv:
       - qm
       - create
-      - "{{ k8s_control_plane_vmid }}"
+      - "{{ k8s_control_plane_secondary_vmid }}"
       - --name
       - k8s-cp
       - --cores
-      - "{{ k8s_control_plane_cores }}"
+      - "{{ k8s_control_plane_secondary_cores }}"
       - --memory
-      - "{{ k8s_control_plane_memory }}"
+      - "{{ k8s_control_plane_secondary_memory }}"
       - --net0
       - virtio,bridge=vmbr0
       - --scsihw
@@ -38,9 +38,9 @@
         argv:
           - qm
           - set
-          - "{{ k8s_control_plane_vmid }}"
+          - "{{ k8s_control_plane_secondary_vmid }}"
           - --scsi0
-          - local-lvm:0,import-from={{ k8s_control_plane_pve_ignition_path }}/flatcar_production_qemu_image.img,discard=on,ssd=1
+          - local-lvm:0,import-from={{ k8s_control_plane_secondary_pve_ignition_path }}/flatcar_production_qemu_image.img,discard=on,ssd=1
 
     - name: Set boot order
       changed_when: true
@@ -48,7 +48,7 @@
         argv:
           - qm
           - set
-          - "{{ k8s_control_plane_vmid }}"
+          - "{{ k8s_control_plane_secondary_vmid }}"
           - --boot
           - order=scsi0
 
@@ -58,7 +58,7 @@
         argv:
           - qm
           - set
-          - "{{ k8s_control_plane_vmid }}"
+          - "{{ k8s_control_plane_secondary_vmid }}"
           - --serial0
           - socket
           - --vga
@@ -70,7 +70,7 @@
         argv:
           - qm
           - set
-          - "{{ k8s_control_plane_vmid }}"
+          - "{{ k8s_control_plane_secondary_vmid }}"
           - --agent
           - enabled=1
 
@@ -80,9 +80,9 @@
         argv:
           - qm
           - set
-          - "{{ k8s_control_plane_vmid }}"
+          - "{{ k8s_control_plane_secondary_vmid }}"
           - --args
-          - "-fw_cfg name=opt/org.flatcar-linux/config,file={{ k8s_control_plane_pve_ignition_path }}/control_plane.ign"
+          - "-fw_cfg name=opt/org.flatcar-linux/config,file={{ k8s_control_plane_secondary_pve_ignition_path }}/{{ k8s_control_plane_secondary_ignition_prefix }}{{ k8s_control_plane_secondary_vmid }}.ign"
 
 - name: Start VM
   changed_when: true
@@ -90,4 +90,4 @@
     argv:
       - qm
       - start
-      - "{{ k8s_control_plane_vmid }}"
+      - "{{ k8s_control_plane_secondary_vmid }}"
