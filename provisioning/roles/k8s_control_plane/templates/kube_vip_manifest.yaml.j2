@@ -18,7 +18,7 @@ spec:
           fieldPath: spec.nodeName
     - name: vip_interface
       value: eth0
-    - name: vip_cidr
+    - name: vip_subnet
       value: "32"
     - name: dns_mode
       value: first
@@ -46,7 +46,7 @@ spec:
       value: {{ k8s_cluster_endpoint }}
     - name: prometheus_server
       value: :2112
-    image: ghcr.io/kube-vip/kube-vip:v0.8.9
+    image: ghcr.io/kube-vip/kube-vip:v{{ k8s_control_plane_kube_vip_version }}
     imagePullPolicy: IfNotPresent
     name: kube-vip
     resources: {}
