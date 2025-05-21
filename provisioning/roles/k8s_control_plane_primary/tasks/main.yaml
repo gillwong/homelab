@@ -42,6 +42,10 @@
           - tigera-operator
           - --timeout=120s
 
+    - name: Wait
+      ansible.builtin.wait_for:
+        timeout: 15
+
     - name: Copy Calico installation manifest
       ansible.builtin.template:
         src: calico.j2
@@ -66,6 +70,10 @@
           - --for=create
           - namespace/calico-system
           - --timeout=120s
+
+    - name: Wait
+      ansible.builtin.wait_for:
+        timeout: 15
 
     - name: Wait for Calico to finish installation
       changed_when: false
