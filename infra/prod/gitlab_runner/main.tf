@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "telmate/proxmox"
-      version = "3.0.1-rc8"
+      version = "3.0.1-rc9"
     }
   }
 }
@@ -32,7 +32,6 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
   name             = "tf-gitlab-runner"
   target_node      = "pve"
   agent            = 1
-  cores            = 4
   memory           = 8192
   boot             = "order=scsi0"                             # has to be the same as the OS disk of the template
   clone            = "AlmaLinux-9-5-20241120-x86-64-cloudinit" # The name of the template
@@ -41,13 +40,17 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
   automatic_reboot = true
 
   # Cloud-Init configuration
-  cicustom   = "vendor=local:snippets/dnf-template.yml" # /var/lib/vz/snippets/dnf-template.yml
+  cicustom   = "vendor=local:snippets/dnf_template.yaml" # /var/lib/vz/snippets/dnf_template.yaml
   ciupgrade  = true
   nameserver = "192.168.0.1"                       # router IP
   ipconfig0  = "ip=192.168.1.10/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux" # Default user, reference: https://wiki.almalinux.org/cloud/Generic-cloud-on-local.html#cloud-init
   sshkeys    = var.ci_sshkey
+
+  cpu {
+    cores = 4
+  }
 
   # Most cloud-init images require a serial device for their display
   serial {
