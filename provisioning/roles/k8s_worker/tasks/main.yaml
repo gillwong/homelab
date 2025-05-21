@@ -20,7 +20,7 @@
       - create
       - "{{ k8s_worker_vmid }}"
       - --name
-      - k8s-cp
+      - "{{ k8s_worker_name }}"
       - --cores
       - "{{ k8s_worker_cores }}"
       - --memory
@@ -40,7 +40,7 @@
           - set
           - "{{ k8s_worker_vmid }}"
           - --scsi0
-          - local-lvm:0,import-from={{ k8s_worker_pve_ignition_path }}/flatcar_production_qemu_image.img,discard=on,ssd=1
+          - local-lvm:0,import-from={{ k8s_worker_pve_ignition_path }}/flatcar_production_qemu_image.img,discard=on,ssd=1,iothread=1
 
     - name: Set boot order
       changed_when: true
