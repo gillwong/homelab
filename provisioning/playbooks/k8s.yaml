@@ -19,7 +19,7 @@
         delay: 30
         state: started
         timeout: 300
-    
+
     - name: Wait for Kubernetes primary control plane node to be accessible via SSH
       ansible.builtin.wait_for:
         timeout: 120
@@ -42,13 +42,14 @@
     - k8s_control_plane
     - k8s_control_plane_primary
     - k8s_control_plane_primary_post
-    
+
 - name: Obtain kubeadm join variables
   hosts: k8s_control_plane_primary
   remote_user: core
   gather_facts: false
   tasks:
     - name: Save control plane certificate key
+      changed_when: true
       no_log: true
       ansible.builtin.raw: set -o pipefail && /usr/bin/sudo /opt/bin/kubeadm init phase upload-certs --upload-certs | tail -1
       args:
@@ -56,6 +57,7 @@
       register: k8s_control_plane_cert_key
 
     - name: Save join command
+      changed_when: true
       ansible.builtin.raw: /opt/bin/kubeadm token create --print-join-command
       args:
         executable: /usr/bin/bash

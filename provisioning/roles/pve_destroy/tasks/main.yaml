@@ -1,8 +1,10 @@
 ---
 - name: Shutdown VM
+  changed_when: true
   ansible.builtin.command: qm shutdown {{ pve_destroy_vmid }}
 
 - name: Destroy VM
+  changed_when: true
   ansible.builtin.command:
     argv:
       - qm
@@ -10,4 +12,3 @@
       - "{{ pve_destroy_vmid }}"
       - --purge
       - --destroy-unreferenced-disks
-    
