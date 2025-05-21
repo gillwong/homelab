@@ -4,7 +4,7 @@
   become: true
   tasks:
     - name: Check if using cloud-init
-      ansible.builtin.command: cloud-init --version
+      ansible.builtin.raw: cloud-init --version
       register: cloudinit_version_output
       changed_when: false
       ignore_errors: true
@@ -14,9 +14,25 @@
     - name: Wait for cloud-init to finish
       when: cloudinit_version_output.rc == 0
       become: true
-      ansible.builtin.command: cloud-init status --wait
+      ansible.builtin.raw: cloud-init status --wait
       register: cloudinit_status_wait_output
       failed_when: cloudinit_status_wait_output.rc == 1
+      changed_when: true
+      tags:
+        - always
+
+    - name: Check if Python exists
+      ansible.builtin.raw: python --version
+      register: python_version_output
+      changed_when: false
+      ignore_errors: true
+      tags:
+        - always
+
+    - name: Install Python
+      when: not ansible_check_mode and python_version_output.rc != 0
+      become: true
+      ansible.builtin.raw: dnf install -y python
       changed_when: true
       tags:
         - always
