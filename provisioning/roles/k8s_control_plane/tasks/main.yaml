@@ -13,3 +13,18 @@
     mode: "644"
   tags:
     - kube_vip
+
+# Required for IPVS
+- name: Install ipvsadm
+  ansible.builtin.package:
+    name: ipvsadm
+    state: present
+
+- name: Enable ip_vs kernel module
+  community.general.modprobe:
+    name: ip_vs
+    state: present
+    persistent: present
+
+- name: Reboot
+  ansible.builtin.reboot:
