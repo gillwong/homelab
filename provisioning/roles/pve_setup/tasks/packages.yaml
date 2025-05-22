@@ -1,0 +1,5 @@
+---
+- name: Install lm-sensors
+  ansible.builtin.package:
+    name: lm-sensors
+    state: present

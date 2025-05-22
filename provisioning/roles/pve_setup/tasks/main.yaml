@@ -1,3 +1,6 @@
 ---
 - name: Configure cloud-init files
   ansible.builtin.import_tasks: cloud_init.yaml
+
+- name: Install packages
+  ansible.builtin.import_tasks: packages.yaml
