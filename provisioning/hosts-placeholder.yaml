@@ -1,4 +1,5 @@
 ---
+# A placeholder inventory file used by Vagrant
 placeholder:
   hosts:
     localhost:
