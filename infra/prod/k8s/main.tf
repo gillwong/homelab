@@ -44,20 +44,16 @@ variable "k8s_control_plane_node_distribution" {
   description = "Map of control plane indices (0-based) to Proxmox target nodes and clone templates"
   type = map(object({
     target_node = string
-    clone       = string
   }))
   default = {
     "0" = {
       target_node = "pve"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit"
     }
     "1" = {
       target_node = "pve"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit"
     }
     "2" = {
       target_node = "pve1"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit1"
     }
   }
 }
@@ -66,20 +62,16 @@ variable "k8s_worker_node_distribution" {
   description = "Map of worker node indices (0-based) to Proxmox target nodes and clone templates"
   type = map(object({
     target_node = string
-    clone       = string
   }))
   default = {
     "0" = {
       target_node = "pve"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit"
     }
     "1" = {
       target_node = "pve1"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit1"
     }
     "2" = {
       target_node = "pve1"
-      clone       = "AlmaLinux-9-5-20241120-x86-64-cloudinit1"
     }
   }
 }
@@ -89,11 +81,11 @@ resource "proxmox_vm_qemu" "k8s_cp" {
 
   vmid             = 121 + count.index
   name             = "tf-k8s-cp-${count.index + 1}"
-  target_node      = lookup(var.k8s_control_plane_node_distribution, tostring(count.index), { "target_node" = "pve", "clone" = "AlmaLinux-9-5-20241120-x86-64-cloudinit" }).target_node
+  target_node      = lookup(var.k8s_control_plane_node_distribution, tostring(count.index), { "target_node" = "pve" }).target_node
   agent            = 1
   memory           = 6144
   boot             = "order=scsi0"                                                                                                                                                # has to be the same as the OS disk of the template
-  clone            = lookup(var.k8s_control_plane_node_distribution, tostring(count.index), { "target_node" = "pve", "clone" = "AlmaLinux-9-5-20241120-x86-64-cloudinit" }).clone # The name of the template
+  clone            = "almalinux-9-6-x86-64-cloudinit" # The name of the template
   scsihw           = "virtio-scsi-single"
   vm_state         = "running"
   automatic_reboot = true
@@ -152,11 +144,11 @@ resource "proxmox_vm_qemu" "k8s" {
 
   vmid             = 121 + var.k8s_config.control_plane_nodes + count.index
   name             = "tf-k8s-${count.index + 1}"
-  target_node      = lookup(var.k8s_worker_node_distribution, tostring(count.index), { "target_node" = "pve", "clone" = "AlmaLinux-9-5-20241120-x86-64-cloudinit" }).target_node
+  target_node      = lookup(var.k8s_worker_node_distribution, tostring(count.index), { "target_node" = "pve" }).target_node
   agent            = 1
   memory           = 12288
   boot             = "order=scsi0"                                                                                                                                         # has to be the same as the OS disk of the template
-  clone            = lookup(var.k8s_worker_node_distribution, tostring(count.index), { "target_node" = "pve", "clone" = "AlmaLinux-9-5-20241120-x86-64-cloudinit" }).clone # The name of the template
+  clone            = "almalinux-9-6-x86-64-cloudinit" # The name of the template
   scsihw           = "virtio-scsi-single"
   vm_state         = "running"
   automatic_reboot = true
