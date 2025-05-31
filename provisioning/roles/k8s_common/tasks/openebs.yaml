@@ -1,0 +1,21 @@
+---
+- name: Enable nvme-tcp kernel module
+  community.general.modprobe:
+    name: nvme-tcp
+    state: present
+    persistent: present
+
+- name: Enable 2MB huge pages
+  changed_when: true
+  ansible.builtin.shell: sudo sh -c 'echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages'
+
+- name: Persist huge pages
+  ansible.posix.sysctl:
+    name: vm.nr_hugepages
+    value: "1024"
+    state: present
+    sysctl_set: true
+    reload: true
+
+- name: Reboot
+  ansible.builtin.reboot:

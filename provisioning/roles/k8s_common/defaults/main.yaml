@@ -28,3 +28,5 @@ k8s_common_kubelet_version: 0.16.2
 k8s_common_kubelet_base_url: https://raw.githubusercontent.com/kubernetes/release/v{{ k8s_common_kubelet_version }}/cmd/krel/templates/latest
 k8s_common_kubelet_service_url: "{{ k8s_common_kubelet_base_url }}/kubelet/kubelet.service"
 k8s_common_kubelet_config_url: "{{ k8s_common_kubelet_base_url }}/kubeadm/10-kubeadm.conf"
+
+k8s_common_storage: openebs

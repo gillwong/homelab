@@ -8,9 +8,18 @@
   ansible.builtin.import_tasks: system.yaml
 
 - name: Enable services used by Longhorn
+  when: k8s_common_storage == 'longhorn'
   ansible.builtin.import_tasks: longhorn.yaml
   tags:
+    - storage
     - longhorn
+
+- name: Enable services used by OpenEBS
+  when: k8s_common_storage == 'openebs'
+  ansible.builtin.import_tasks: openebs.yaml
+  tags:
+    - storage
+    - openebs
 
 - name: Install containerd
   ansible.builtin.import_tasks: containerd_install.yaml

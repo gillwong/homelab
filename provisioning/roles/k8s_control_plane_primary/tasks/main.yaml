@@ -5,16 +5,21 @@
     regexp: '(\s+)path: /etc/kubernetes/admin.conf'
     replace: '\1path: /etc/kubernetes/super-admin.conf'
 
+- name: Copy kubeadm init configuration
+  ansible.builtin.template:
+    src: kubeadm_init.yaml.j2
+    dest: /etc/kubeadm_init.yaml
+    mode: "644"
+  register: kubeadm_init_config_output
+
 - name: Initialize Kubernetes control plane
   changed_when: true
   ansible.builtin.command:
     argv:
       - kubeadm
       - init
-      - --control-plane-endpoint={{ k8s_cluster_endpoint }}:6443
       - --upload-certs
-      - --apiserver-cert-extra-sans={{ k8s_control_plane_primary_extra_sans }}
-      - --pod-network-cidr={{ k8s_control_plane_primary_pod_network_cidr }}
+      - --config={{ kubeadm_init_config_output.dest }}
 
 - name: Complete Kubernetes control plane post-initialization
   ansible.builtin.import_role:
@@ -48,9 +53,9 @@
 
     - name: Copy Calico installation manifest
       ansible.builtin.template:
-        src: calico.j2
-        dest: /tmp/calico.yaml
-        mode: "600"
+        src: calico.yaml.j2
+        dest: /etc/calico.yaml
+        mode: "644"
       register: calico_template_output
 
     - name: Install Calico

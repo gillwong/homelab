@@ -1,5 +1,16 @@
 ---
-- name: Join Kubernetes cluster as a control plane node
+- name: Copy kubeadm join configuration
+  ansible.builtin.template:
+    src: kubeadm_join.yaml.j2
+    dest: /etc/kubeadm_join.yaml
+    mode: "644"
+  register: kubeadm_join_config_output
+
+- name: Join Kubernetes cluster as a worker node
   when: k8s_worker_join_command
   changed_when: true
-  ansible.builtin.command: "{{ k8s_worker_join_command }}"
+  ansible.builtin.command:
+    argv:
+      - kubeadm
+      - join
+      - --config={{ kubeadm_join_config_output.dest }}

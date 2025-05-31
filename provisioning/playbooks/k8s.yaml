@@ -57,6 +57,8 @@
       tags:
         - k8s
         - k8s_common
+      vars:
+        k8s_common_storage: "{{ lookup('env', 'K8S_STORAGE', default='openebs') }}"
 
 - name: Setup Kubernetes control plane nodes
   hosts: k8s_control_plane
@@ -121,6 +123,33 @@
         name: k8s_worker
       vars:
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
+
+- name: Post cluster initialization configuration
+  hosts: k8s_control_plane
+  become: true
+  tags:
+    - k8s
+  tasks:
+    # - name: Label worker nodes for OpenEBS
+    #   when: lookup('env', 'K8S_STORAGE', default='openebs') == 'openebs'
+    #   run_once: true
+    #   ansible.builtin.command:
+    #     argv:
+    #       - kubectl
+    #       - label
+    #       - node
+    #       - "{{ item }}"
+    #       - openebs.io/engine=mayastor
+    #   loop:
+    #     - k8s-1
+    #     - k8s-2
+    #     - k8s-3
+
+    - name: Fetch kubeconfig file
+      run_once: true
+      ansible.builtin.fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: k8s-cluster-admin.conf
 
 - name: Configure Flux
   hosts: k8s_control_plane
