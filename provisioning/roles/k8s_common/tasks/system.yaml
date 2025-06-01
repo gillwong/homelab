@@ -38,9 +38,7 @@
     sysctl_set: true
     reload: true
 
-- name: Disable SELinux
+- name: Configure SELinux
   ansible.posix.selinux:
-    state: disabled
-
-- name: Reboot
-  ansible.builtin.reboot:
+    policy: targeted
+    state: permissive

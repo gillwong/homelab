@@ -1,0 +1,8 @@
+---
+- name: Wait for a download to finish
+  ansible.builtin.async_status:
+    jid: "{{ jid }}"
+  register: wait
+  until: wait.finished
+  retries: 10
+  delay: 10

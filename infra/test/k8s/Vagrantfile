@@ -46,7 +46,7 @@ Vagrant.configure("2") do |config|
           ansible.limit = "all"
           ansible.config_file = "#{base_dir}/ansible.cfg"
           ansible.playbook = "#{base_dir}/playbooks/k8s.yaml"
-          ansible.raw_arguments = ["--inventory=#{base_dir}/hosts-placeholder.yaml", '--extra-vars "k8s_cluster_endpoint=192.168.121.200"']
+          ansible.raw_arguments = ["--inventory=#{base_dir}/hosts-placeholder.yaml", '--extra-vars "k8s.cluster_endpoint=192.168.121.200"']
           ansible.groups = {
             "k8s" => (1..3).map { |j| "k8s-cp-#{j}" } + (4..6).map { |j| "k8s-#{j}" },
             "k8s_control_plane" => (1..3).map { |j| "k8s-cp-#{j}" },

@@ -1,29 +1,51 @@
 ---
 pve:
   hosts:
-    192.168.1.0:
-    192.168.1.1:
+    pve0:
+      ansible_host: 192.168.1.0
+    pve1:
+      ansible_host: 192.168.1.1
 
 gitlab_runner:
   hosts:
     192.168.1.10:
 
 k8s:
-  hosts:
-    192.168.1.[21:26]:
+  children:
+    k8s_control_plane:
+    k8s_worker:
 
 k8s_control_plane:
-  hosts:
-    192.168.1.[21:23]:
+  children:
+    k8s_control_plane_primary:
+    k8s_control_plane_secondary:
 
 k8s_control_plane_primary:
   hosts:
-    192.168.1.21:
+    k8s-cp-1:
+      ansible_host: 192.168.1.21
 
 k8s_control_plane_secondary:
   hosts:
-    192.168.1.[22:23]:
+    k8s-cp-2:
+      ansible_host: 192.168.1.22
+    k8s-cp-3:
+      ansible_host: 192.168.1.23
 
 k8s_worker:
   hosts:
-    192.168.1.[24:26]:
+    k8s-worker-1:
+      ansible_host: 192.168.1.24
+    k8s-worker-2:
+      ansible_host: 192.168.1.25
+    k8s-worker-3:
+      ansible_host: 192.168.1.26
+
+almalinux:
+  children:
+    k8s:
+    gitlab_runner:
+
+debian:
+  children:
+    pve:

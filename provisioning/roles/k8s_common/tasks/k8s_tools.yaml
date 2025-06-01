@@ -1,0 +1,49 @@
+---
+- name: Install kubelet binary
+  ansible.builtin.copy:
+    src: "{{ k8s_common_download_dir }}/kubelet"
+    dest: /usr/bin/kubelet
+    mode: "755"
+
+- name: Copy kubelet service
+  ansible.builtin.copy:
+    src: "{{ k8s_common_download_dir }}/kubelet.service"
+    dest: /usr/lib/systemd/system/kubelet.service
+    mode: "644"
+
+- name: Create kubelet configuration directory
+  ansible.builtin.file:
+    path: /usr/lib/systemd/system/kubelet.service.d
+    state: directory
+    mode: "755"
+
+- name: Copy kubelet configuration file
+  ansible.builtin.copy:
+    src: "{{ k8s_common_download_dir }}/10-kubeadm.conf"
+    dest: /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+    mode: "644"
+
+- name: Start kubelet
+  ansible.builtin.service:
+    name: kubelet
+    enabled: true
+    state: started
+
+- name: Install kubeadm & kubectl
+  ansible.builtin.copy:
+    src: "{{ k8s_common_download_dir }}/{{ item }}"
+    dest: /usr/local/bin/{{ item }}
+    mode: "755"
+  loop:
+    - kubeadm
+    - kubectl
+
+- name: Create kubeadm & kubectl symlinks for root access
+  ansible.builtin.file:
+    src: /usr/local/bin/{{ item }}
+    dest: /usr/bin/{{ item }}
+    state: link
+    mode: "755"
+  loop:
+    - kubeadm
+    - kubectl

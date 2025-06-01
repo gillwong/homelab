@@ -1,17 +1,8 @@
 ---
-- name: Download crictl binary archive
-  ansible.builtin.get_url:
-    url: "{{ k8s_common_crictl_url }}"
-    timeout: 30
-    dest: "{{ temp_dir.path }}/{{ k8s_common_crictl_archive }}"
-    mode: "755"
-
 - name: Extract crictl binary archive
   ansible.builtin.unarchive:
-    src: "{{ temp_dir.path }}/{{ k8s_common_crictl_archive }}"
+    src: "{{ k8s_common_download_dir }}/{{ k8s_common_crictl_archive }}"
     dest: /usr/local/bin/
-    remote_src: true
-    list_files: true
     mode: "755"
 
 - name: Create a crictl symlink for root access

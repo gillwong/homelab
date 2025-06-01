@@ -1,0 +1,102 @@
+---
+- name: Download runc executable
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_runc_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/runc"
+    mode: "755"
+  async: 90
+  poll: 0
+  register: runc_download
+
+- name: Download containerd binary archive
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_containerd_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/{{ k8s_common_containerd_archive }}"
+    mode: "755"
+  async: 90
+  poll: 0
+  register: containerd_download
+
+- name: Download containerd service file
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_containerd_service_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/containerd.service"
+    mode: "644"
+  async: 90
+  poll: 0
+  register: containerd_service_download
+
+- name: Download CNI plugins archive
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_cni_plugins_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/{{ k8s_common_cni_plugins_archive }}"
+    mode: "755"
+  async: 90
+  poll: 0
+  register: cni_plugins_download
+
+- name: Download crictl binary archive
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_crictl_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/{{ k8s_common_crictl_archive }}"
+    mode: "755"
+  async: 90
+  poll: 0
+  register: crictl_download
+
+- name: Download kubelet, kubeadm, and kubectl binary
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_base_url }}/{{ item }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/{{ item }}"
+    mode: "755"
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl
+  async: 90
+  poll: 0
+  register: k8s_tools_download
+
+- name: Download kubelet service file
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_kubelet_service_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/kubelet.service"
+    mode: "644"
+  async: 90
+  poll: 0
+  register: kubelet_service_download
+
+- name: Download kubelet service file for kubeadm
+  ansible.builtin.get_url:
+    url: "{{ k8s_common_kubelet_config_url }}"
+    timeout: 90
+    dest: "{{ k8s_common_download_dir }}/10-kubeadm.conf"
+    mode: "644"
+  async: 90
+  poll: 0
+  register: kubelet_kubeadm_service_download
+
+- name: Wait for downloads to finish
+  ansible.builtin.include_tasks: wait_download.yaml
+  vars:
+    jid: "{{ item }}"
+  loop:
+    - "{{ runc_download.ansible_job_id }}"
+    - "{{ containerd_download.ansible_job_id }}"
+    - "{{ containerd_service_download.ansible_job_id }}"
+    - "{{ cni_plugins_download.ansible_job_id }}"
+    - "{{ crictl_download.ansible_job_id }}"
+    - "{{ k8s_tools_download.results[0].ansible_job_id }}"
+    - "{{ k8s_tools_download.results[1].ansible_job_id }}"
+    - "{{ k8s_tools_download.results[2].ansible_job_id }}"
+    - "{{ kubelet_service_download.ansible_job_id }}"
+    - "{{ kubelet_kubeadm_service_download.ansible_job_id }}"
+  tags:
+    - always

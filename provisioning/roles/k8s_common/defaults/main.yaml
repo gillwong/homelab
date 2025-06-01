@@ -21,7 +21,7 @@ k8s_common_crictl_url: https://github.com/kubernetes-sigs/cri-tools/releases/dow
 
 # kubelet & kubeadm
 k8s_common_version: 1.33.1
-k8s_common_base_url: https://dl.k8s.io/release/v{{ k8s_common_version }}/bin/linux/amd64/
+k8s_common_base_url: https://dl.k8s.io/release/v{{ k8s_common_version }}/bin/linux/amd64
 
 # kubelet service
 k8s_common_kubelet_version: 0.16.2
