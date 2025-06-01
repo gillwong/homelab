@@ -43,7 +43,7 @@ spec:
     - name: vip_retryperiod
       value: "1"
     - name: address
-      value: {{ k8s_cluster_endpoint }}
+      value: {{ k8s_control_plane_cluster_endpoint }}
     - name: prometheus_server
       value: :2112
     image: ghcr.io/kube-vip/kube-vip:v{{ k8s_control_plane_kube_vip_version }}

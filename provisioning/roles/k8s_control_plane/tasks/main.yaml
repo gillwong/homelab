@@ -1,5 +1,6 @@
 ---
 - name: Create Kubernetes manifests directory
+  become: true
   ansible.builtin.file:
     path: /etc/kubernetes/manifests
     state: directory
@@ -7,6 +8,7 @@
 
 # Reference: https://kube-vip.io/docs/installation/static/
 - name: Setup kube-vip StaticPod manifest
+  become: true
   ansible.builtin.template:
     src: kube_vip_manifest.yaml.j2
     dest: /etc/kubernetes/manifests/kube-vip.yaml
@@ -16,15 +18,18 @@
 
 # Required for IPVS
 - name: Install ipvsadm
+  become: true
   ansible.builtin.package:
     name: ipvsadm
     state: present
 
 - name: Enable ip_vs kernel module
+  become: true
   community.general.modprobe:
     name: ip_vs
     state: present
     persistent: present
 
 - name: Reboot
+  become: true
   ansible.builtin.reboot:

@@ -9,7 +9,7 @@ networking:
   serviceSubnet: {{ k8s_control_plane_primary_service_subnet }}
   podSubnet: {{ k8s_control_plane_primary_pod_subnet }}
   dnsDomain: cluster.local
-controlPlaneEndpoint: {{ k8s_cluster_endpoint }}:6443
+controlPlaneEndpoint: {{ k8s_control_plane_primary_cluster_endpoint }}:6443
 apiServer:
   extraArgs:
     - name: bind-address

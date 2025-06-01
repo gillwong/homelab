@@ -99,4 +99,4 @@
     - "{{ kubelet_service_download.ansible_job_id }}"
     - "{{ kubelet_kubeadm_service_download.ansible_job_id }}"
   tags:
-    - always
+    - wait_download

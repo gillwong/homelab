@@ -73,40 +73,53 @@
 
 - name: Setup Kubernetes control plane nodes
   hosts: k8s_control_plane
-  become: true
-  tags:
-    - k8s
   tasks:
-    - name: Configure Kubernetes control plane
+    - name: Setup Kubernetes control plane nodes
       ansible.builtin.import_role:
         name: k8s_control_plane
-      tags:
-        - k8s_control_plane_common
+      vars:
+        k8s_control_plane_cluster_endpoint: "{{ k8s.cluster_endpoint }}"
+        k8s_control_plane_kube_vip_version: "{{ k8s.kube_vip_version }}"
+  tags:
+    - k8s
+    - k8s_control_plane
+    - k8s_control_plane_common
 
 - name: Initialize Kubernetes control plane
   hosts: k8s_control_plane_primary
-  become: true
-  tags:
-    - k8s
   tasks:
     - name: Initialize Kubernetes control plane
       ansible.builtin.import_role:
         name: k8s_control_plane_primary
+      vars:
+        k8s_control_plane_primary_cluster_endpoint: "{{ k8s.cluster_endpoint }}"
+        k8s_control_plane_primary_service_subnet: "{{ k8s.service_subnet }}"
+        k8s_control_plane_primary_pod_subnet: "{{ k8s.pod_subnet }}"
+        k8s_control_plane_primary_extra_sans: "{{ k8s.extra_sans }}"
+        k8s_control_plane_primary_tigera_operator_version: "{{ k8s.calico_version }}"
       tags:
         - k8s_control_plane_primary
 
     - name: Save control plane certificate key
       no_log: true
-      changed_when: false
+      become: true
       ansible.builtin.shell: set -o pipefail && kubeadm init phase upload-certs --upload-certs | tail -1
+      changed_when: false
       register: k8s_control_plane_certificate_key
       tags:
-        - k8s_control_plane_secondary
+        - k8s_control_plane_init_post
 
     - name: Save join command
-      changed_when: false
+      become: true
       ansible.builtin.command: kubeadm token create --print-join-command
+      changed_when: false
       register: k8s_kubeadm_join_command
+      tags:
+        - k8s_control_plane_init_post
+  tags:
+    - k8s
+    - k8s_control_plane
+    - k8s_control_plane_init
 
 - name: Join Kubernetes control plane nodes
   hosts: k8s_control_plane_secondary
