@@ -44,3 +44,6 @@ terraform.rc
 
 # Plan files
 plan*
+
+# Kubernetes cluster admin kubeconfig
+k8s-cluster-admin.conf

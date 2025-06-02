@@ -121,38 +121,36 @@
     - k8s_control_plane
     - k8s_control_plane_init
 
-- name: Join Kubernetes control plane nodes
+- name: Join Kubernetes control plane nodes to the cluster
   hosts: k8s_control_plane_secondary
-  become: true
-  tags:
-    - k8s
   tasks:
-    - name: Join Kubernetes cluster as a control plane node
+    - name: Join Kubernetes control plane nodes to the cluster
       ansible.builtin.import_role:
         name: k8s_control_plane_secondary
       vars:
+        k8s_control_plane_secondary_cluster_endpoint: "{{ k8s.cluster_endpoint }}"
         k8s_control_plane_secondary_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
         k8s_control_plane_secondary_certificate_key: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_control_plane_certificate_key']['stdout'] }}"
-      tags:
-        - k8s_control_plane_secondary
-
-- name: Join Kubernetes worker nodes
-  hosts: k8s_worker
-  become: true
   tags:
     - k8s
+    - k8s_control_plane
+    - k8s_control_plane_secondary
+
+- name: Join Kubernetes worker nodes to the cluster
+  hosts: k8s_worker
   tasks:
-    - name: Join Kubernetes cluster as a worker node
+    - name: Join Kubernetes worker nodes to the cluster
       ansible.builtin.import_role:
         name: k8s_worker
       vars:
+        k8s_worker_cluster_endpoint: "{{ k8s.cluster_endpoint }}"
         k8s_worker_join_command: "{{ hostvars[groups['k8s_control_plane_primary'][0]]['k8s_kubeadm_join_command']['stdout'] }}"
+  tags:
+    - k8s
+    - k8s_worker
 
 - name: Post cluster initialization configuration
   hosts: k8s_control_plane
-  become: true
-  tags:
-    - k8s
   tasks:
     # - name: Label worker nodes for OpenEBS
     #   when: lookup('env', 'K8S_STORAGE', default='openebs') == 'openebs'
@@ -171,17 +169,11 @@
 
     - name: Fetch kubeconfig file
       run_once: true
+      become: true
       ansible.builtin.fetch:
         src: /etc/kubernetes/admin.conf
         dest: k8s-cluster-admin.conf
         flat: true
-
-- name: Configure Flux
-  hosts: k8s_control_plane
-  become: true
   tags:
-    - flux
-  tasks:
-    - name: Configure Flux role
-      ansible.builtin.import_role:
-        name: flux
+    - k8s
+    - k8s_post

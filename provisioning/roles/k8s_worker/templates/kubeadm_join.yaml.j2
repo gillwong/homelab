@@ -2,7 +2,7 @@ apiVersion: kubeadm.k8s.io/v1beta4
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    apiServerEndpoint: {{ k8s_cluster_endpoint }}:6443
+    apiServerEndpoint: {{ k8s_worker_cluster_endpoint }}:6443
     token: {{ k8s_worker_join_command.split()[4] }}
     caCertHashes:
       - {{ k8s_worker_join_command.split()[6] }}

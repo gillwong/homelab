@@ -1,0 +1,7 @@
+- name: Configure Flux
+  hosts: k8s_control_plane
+  become: true
+  tasks:
+    - name: Configure Flux role
+      ansible.builtin.import_role:
+        name: flux

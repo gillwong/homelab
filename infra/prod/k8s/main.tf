@@ -80,7 +80,7 @@ resource "proxmox_vm_qemu" "k8s_cp" {
   count = var.k8s_config.control_plane_nodes
 
   vmid             = 121 + count.index
-  name             = "tf-k8s-cp-${count.index + 1}"
+  name             = "k8s-cp-${count.index + 1}"
   target_node      = lookup(var.k8s_control_plane_node_distribution, tostring(count.index), { "target_node" = "pve" }).target_node
   agent            = 1
   memory           = 6144
@@ -139,11 +139,11 @@ resource "proxmox_vm_qemu" "k8s_cp" {
   }
 }
 
-resource "proxmox_vm_qemu" "k8s" {
+resource "proxmox_vm_qemu" "k8s_worker" {
   count = var.k8s_config.worker_nodes
 
   vmid             = 121 + var.k8s_config.control_plane_nodes + count.index
-  name             = "tf-k8s-${count.index + 1}"
+  name             = "k8s-worker-${count.index + 1}"
   target_node      = lookup(var.k8s_worker_node_distribution, tostring(count.index), { "target_node" = "pve" }).target_node
   agent            = 1
   memory           = 12288

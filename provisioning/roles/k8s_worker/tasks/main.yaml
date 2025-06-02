@@ -1,5 +1,6 @@
 ---
 - name: Copy kubeadm join configuration
+  become: true
   ansible.builtin.template:
     src: kubeadm_join.yaml.j2
     dest: /etc/kubeadm_join.yaml
@@ -8,9 +9,12 @@
 
 - name: Join Kubernetes cluster as a worker node
   when: k8s_worker_join_command
-  changed_when: true
+  become: true
   ansible.builtin.command:
     argv:
       - kubeadm
       - join
       - --config={{ kubeadm_join_config_output.dest }}
+  changed_when: true
+  tags:
+    - kubeadm_join
