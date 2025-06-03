@@ -1,4 +1,10 @@
 ---
+- name: Create cloud-init snippets directory
+  ansible.builtin.file:
+    path: /var/lib/vz/snippets
+    state: directory
+    mode: "755"
+
 - name: Create cloud-init snippets
   ansible.builtin.template:
     src: "{{ item }}"
