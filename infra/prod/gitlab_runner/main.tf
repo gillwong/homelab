@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "telmate/proxmox"
-      version = "3.0.1-rc9"
+      version = "3.0.2-rc01"
     }
   }
 }
@@ -22,28 +22,31 @@ variable "ci_sshkey" {
 }
 
 provider "proxmox" {
-  pm_api_url  = "https://192.168.1.0:8006/api2/json" # URL to the Proxmox VE server
+  pm_api_url  = "https://192.168.1.1:8006/api2/json" # URL to the Proxmox VE server
   pm_user     = "terraform-prov@pve"
   pm_password = var.pm_password
 }
 
 resource "proxmox_vm_qemu" "gitlab_runner" {
-  vmid             = 110
-  name             = "tf-gitlab-runner"
-  target_node      = "pve"
+  target_node      = "pve2"
+  clone            = "almalinux-9-6-x86-64-cloudinit" # The name of the template
+  vmid             = 111
+  name             = "gitlab-runner"
   agent            = 1
-  memory           = 8192
-  boot             = "order=scsi0"                             # has to be the same as the OS disk of the template
-  clone            = "AlmaLinux-9-5-20241120-x86-64-cloudinit" # The name of the template
+  bios             = "ovmf"
   scsihw           = "virtio-scsi-single"
+  boot             = "order=scsi0" # has to be the same as the OS disk of the template
+  memory           = 8192
+  balloon          = 8192
   vm_state         = "running"
+  onboot           = true
   automatic_reboot = true
 
   # Cloud-Init configuration
   cicustom   = "vendor=local:snippets/dnf_template.yaml" # /var/lib/vz/snippets/dnf_template.yaml
   ciupgrade  = true
   nameserver = "192.168.0.1"                       # router IP
-  ipconfig0  = "ip=192.168.1.10/16,gw=192.168.0.1" # gateway set to router IP
+  ipconfig0  = "ip=192.168.1.11/16,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux" # Default user, reference: https://wiki.almalinux.org/cloud/Generic-cloud-on-local.html#cloud-init
   sshkeys    = var.ci_sshkey
@@ -85,5 +88,10 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
     id     = 0
     bridge = "vmbr0"
     model  = "virtio"
+  }
+
+  efidisk {
+    efitype = "4m"
+    storage = "local-lvm"
   }
 }
