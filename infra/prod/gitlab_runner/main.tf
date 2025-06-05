@@ -22,7 +22,7 @@ variable "ci_sshkey" {
 }
 
 provider "proxmox" {
-  pm_api_url  = "https://192.168.1.1:8006/api2/json" # URL to the Proxmox VE server
+  pm_api_url  = "https://192.168.0.11:8006/api2/json" # URL to the Proxmox VE server
   pm_user     = "terraform-prov@pve"
   pm_password = var.pm_password
 }
@@ -45,8 +45,8 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
   # Cloud-Init configuration
   cicustom   = "vendor=local:snippets/dnf_template.yaml" # /var/lib/vz/snippets/dnf_template.yaml
   ciupgrade  = true
-  nameserver = "192.168.0.1"                       # router IP
-  ipconfig0  = "ip=192.168.1.11/16,gw=192.168.0.1" # gateway set to router IP
+  nameserver = "192.168.0.1"                        # router IP
+  ipconfig0  = "ip=192.168.1.129/24,gw=192.168.0.1" # gateway set to router IP
   skip_ipv6  = true
   ciuser     = "almalinux" # Default user, reference: https://wiki.almalinux.org/cloud/Generic-cloud-on-local.html#cloud-init
   sshkeys    = var.ci_sshkey
@@ -67,7 +67,7 @@ resource "proxmox_vm_qemu" "gitlab_runner" {
         disk {
           storage = "local-lvm"
           # The size of the disk should be at least as big as the disk in the template. If it's smaller, the disk will be recreated
-          size       = "32G"
+          size       = "256G"
           discard    = true
           emulatessd = true
           iothread   = true
