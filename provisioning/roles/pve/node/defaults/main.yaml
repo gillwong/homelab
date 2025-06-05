@@ -1,0 +1,23 @@
+---
+pve_node_ntp_servers:
+  - time.cloudflare.com
+  - nts.teambelgium.net
+  - a.st1.ntp.br
+  - b.st1.ntp.br
+  - c.st1.ntp.br
+  - d.st1.ntp.br
+  - gps.ntp.br
+  - time.web-clock.ca
+  - ntp3.fau.de
+  - ptbtime1.ptb.de
+  - ptbtime2.ptb.de
+  - ptbtime3.ptb.de
+  - ptbtime4.ptb.de
+  - ntppool1.time.nl
+  - ntppool2.time.nl
+  - nts.netnod.se
+  - brazil.time.system76.com
+  - paris.time.system76.com
+  - ohio.time.system76.com
+  - oregon.time.system76.com
+  - virginia.time.system76.com

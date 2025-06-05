@@ -1,0 +1,6 @@
+---
+- name: Configure the Proxmox Virtual Environment host
+  hosts: pve
+  remote_user: root
+  roles:
+    - pve/node

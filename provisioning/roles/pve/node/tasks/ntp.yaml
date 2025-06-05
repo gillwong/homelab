@@ -1,0 +1,47 @@
+---
+- name: Set timezone to Asia/Singapore
+  community.general.timezone:
+    name: Asia/Singapore
+
+- name: Disable NTP
+  ansible.builtin.command: timedatectl set-ntp false
+  changed_when: true
+
+- name: Set date manually
+  ansible.builtin.command: timedatectl set-time {{ '%Y-%m-%d' | strftime }}
+  changed_when: true
+
+- name: Set time manually
+  ansible.builtin.command: timedatectl set-time {{ '%H:%M:%S' | strftime }}
+  changed_when: true
+
+- name: Configure NTP time servers which support NTS
+  ansible.builtin.blockinfile:
+    path: /etc/chrony/chrony.conf
+    insertbefore: "# Use time sources from DHCP\\."
+    state: present
+    block: |
+      {% for item in pve_node_ntp_servers %}
+      server {{ item }} iburst nts
+      {% endfor %}
+
+- name: Remove previous NTP time server pool
+  ansible.builtin.lineinfile:
+    path: /etc/chrony/chrony.conf
+    regexp: ^pool\\s+.+
+    state: absent
+
+- name: Remove comment about previous NTP time server pool
+  ansible.builtin.lineinfile:
+    path: /etc/chrony/chrony.conf
+    search_string: "# Use Debian vendor zone."
+    state: absent
+
+- name: Enable NTP
+  ansible.builtin.command: timedatectl set-ntp true
+  changed_when: true
+
+- name: Restart chronyd
+  ansible.builtin.service:
+    name: chronyd
+    state: restarted

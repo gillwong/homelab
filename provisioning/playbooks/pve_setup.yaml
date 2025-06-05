@@ -1,8 +1,0 @@
----
-- name: Configure the Proxmox Virtual Environment host
-  hosts: pve
-  remote_user: root
-  tasks:
-    - name: Configure pve role
-      ansible.builtin.import_role:
-        name: pve_setup
