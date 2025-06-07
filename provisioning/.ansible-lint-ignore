@@ -2,3 +2,4 @@ playbooks/gitlab_runner.yaml package-latest
 playbooks/k8s.yaml package-latest
 roles/k8s_common/defaults/main.yaml yaml[line-length]
 roles/k8s_control_plane_primary/defaults/main.yaml yaml[line-length]
+* role-name[path]

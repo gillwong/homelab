@@ -1,0 +1,13 @@
+---
+- name: Create argocd namespace
+  ansible.builtin.command: kubectl create namespace argocd
+  changed_when: true
+
+- name: Install Argo CD
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - --namespace=argocd
+      - apply
+      - --filename={{ argocd_manifests_url }}
+  changed_when: true

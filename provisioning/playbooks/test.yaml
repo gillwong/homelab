@@ -1,0 +1,22 @@
+---
+- name: Testing async tasks
+  hosts: k8s
+  tasks:
+    - name: This is run once
+      ansible.builtin.wait_for:
+        timeout: 45
+      async: 60
+      poll: 0
+      register: timer
+
+    - name: Wait for timer
+      ansible.builtin.async_status:
+        jid: "{{ timer.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 4
+      delay: 15
+
+    - name: Can do tasks as usual
+      ansible.builtin.debug:
+        msg: Hello there
